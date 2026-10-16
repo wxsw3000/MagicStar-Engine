@@ -1,0 +1,41 @@
+{
+	"background": "res://projects/white_whale_reef_lighthouse_master/assets/images/backgrounds/bg_scene_lightroom_door.png",
+	"explore_points": [
+		{
+			"id": "ep_bolt_salt",
+			"name": "门闩下方盐晶湿痕",
+			"rect": [
+				0.08,
+				0.44,
+				0.22,
+				0.24
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_bolt_salt"
+			}
+		},
+		{
+			"id": "ep_blue_fiber",
+			"name": "死者指甲缝蓝色纤维",
+			"rect": [
+				0.42,
+				0.54,
+				0.18,
+				0.2
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_blue_fiber"
+			}
+		}
+	],
+	"id": "scene_lightroom_door",
+	"name": "灯塔顶层灯室门内侧",
+	"negative_prompt": "(humans, people, character:1.4), text, watermark, blurry",
+	"prompt": "Left zone: heavy iron door with a vertical iron bolt, frost and white salt crystals under the bolt rail, fresh metallic scratches on the bolt hole. Center zone: corpse of an old lighthouse keeper face down near a brass lamp base, dried blood, tiny blue wool fibers under fingernails. Right zone: circular glass windows with locked latches, snowstorm outside, untouched snow on the terrace, no footprints. Watercolor hand-drawn style, cold blue sea fog, warm yellow lamp flame, highly detailed, scenery, no humans",
+	"size": [
+		1920.0,
+		1080.0
+	]
+}

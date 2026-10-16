@@ -1,0 +1,12 @@
+{
+	"dialogue": "diag_03_ending",
+	"editor_pos": [
+		460.0,
+		340.0
+	],
+	"ending_id": "ending_01_truth",
+	"id": "node_05_ending",
+	"time_phase": "真相大白",
+	"title": "真相大白",
+	"type": "ending"
+}

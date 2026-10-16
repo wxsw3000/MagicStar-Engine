@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		460.0,
+		340.0
+	],
+	"id": "node_05_explore_observation",
+	"next": "node_06_reason_assistant",
+	"scene": "scene_observation_room",
+	"title": "气象观测室搜证",
+	"type": "explore"
+}

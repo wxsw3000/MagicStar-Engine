@@ -1,0 +1,150 @@
+{
+	"items": [
+		{
+			"height": 1080.0,
+			"id": "bg_study_storm",
+			"local_path": "res://assets/images/backgrounds/bg_study_storm.png",
+			"name": "古宅钟楼书房",
+			"prompt": "vintage victorian study room, stormy rain outside stained glass window, ancient grandfather clock, roaring fireplace, dark wood bookshelves, dramatic lighting",
+			"status": "ready",
+			"type": "background",
+			"width": 1920.0
+		},
+		{
+			"character_id": "detective",
+			"height": 768.0,
+			"id": "char_detective_normal",
+			"local_path": "res://assets/images/characters/char_detective_normal.png",
+			"name": "林侦探-冷静推演",
+			"prompt": "1boy, handsome young detective, trench coat, necktie, dark hair, intelligent sharp eyes, serious expression, waist-up portrait",
+			"status": "ready",
+			"type": "character",
+			"width": 512.0
+		},
+		{
+			"character_id": "butler",
+			"height": 768.0,
+			"id": "char_butler_nervous",
+			"local_path": "res://assets/images/characters/char_butler_nervous.png",
+			"name": "苏管家-神色慌张",
+			"prompt": "1old man, elderly butler, black tuxedo vest, gray hair, mustache, nervous sweating expression, guilty eyes, waist-up portrait",
+			"status": "ready",
+			"type": "character",
+			"width": 512.0
+		},
+		{
+			"id": "bgm_suspense_rain",
+			"local_path": "res://assets/audio/bgm/bgm_suspense_rain.wav",
+			"name": "雨夜悬疑主旋律 (钢琴)",
+			"prompt": "Solo acoustic piano in D-minor, slow tempo 68bpm, soft raindrops and distant thunder in background, dark mystery, melancholic",
+			"status": "ready",
+			"type": "bgm"
+		},
+		{
+			"id": "sfx_clue_found",
+			"local_path": "res://assets/audio/sfx/sfx_clue_found.wav",
+			"name": "线索发现音效 (金石轻鸣)",
+			"prompt": "crisp metallic chime sound effect, discovery bell, clean audio",
+			"status": "ready",
+			"type": "sfx"
+		},
+		{
+			"id": "sfx_objection",
+			"local_path": "res://assets/audio/sfx/sfx_objection.wav",
+			"name": "举证异议音效 (OBJECTION冲击波)",
+			"prompt": "dramatic objection shockwave sound effect, orchestral impact",
+			"status": "ready",
+			"type": "sfx"
+		},
+		{
+			"id": "voice_intro_1",
+			"local_path": "res://assets/audio/voice/voice_intro_1.mp3",
+			"name": "旁白-暴风雨席卷",
+			"role": "旁白",
+			"status": "ready",
+			"text": "暴风雨席卷了整座孤岛庄园，闪电刺破夜空。书房深处，案发时的回音犹在耳边。",
+			"type": "voice",
+			"voice_role": "zh-CN-XiaoxiaoNeural"
+		},
+		{
+			"id": "voice_lin_question",
+			"local_path": "res://assets/audio/voice/voice_lin_question.mp3",
+			"name": "林侦探-质询不在场证明",
+			"role": "林侦探",
+			"status": "ready",
+			"text": "苏管家，你坚称自己在深夜十二点整，听到书房里传出老爷的争执声，随后古董钟敲了整整十二下？",
+			"type": "voice",
+			"voice_role": "zh-CN-YunxiNeural"
+		},
+		{
+			"id": "voice_butler_lie",
+			"local_path": "res://assets/audio/voice/voice_butler_lie.mp3",
+			"name": "苏管家-谎言辩解",
+			"role": "苏管家",
+			"status": "ready",
+			"text": "是、是的，林侦探！老奴当时就在门外走廊擦拭银器，听得千真万确！",
+			"type": "voice",
+			"voice_role": "zh-CN-YunjianNeural"
+		},
+		{
+			"id": "voice_lin_investigate",
+			"local_path": "res://assets/audio/voice/voice_lin_investigate.mp3",
+			"name": "林侦探-开始调查",
+			"role": "林侦探",
+			"status": "ready",
+			"text": "这里一定留有某种致命的破绽。我必须仔细调查这座书房！",
+			"type": "voice",
+			"voice_role": "zh-CN-YunxiNeural"
+		},
+		{
+			"id": "voice_clock_inspect",
+			"local_path": "res://assets/audio/voice/voice_clock_inspect.mp3",
+			"name": "林侦探-发现时钟停摆",
+			"role": "林侦探",
+			"status": "ready",
+			"text": "这座古董落地大钟……等等！指针竟然死死停在十一点十五分！齿轮内部有被硬物卡住的痕迹！",
+			"type": "voice",
+			"voice_role": "zh-CN-YunxiNeural"
+		},
+		{
+			"id": "voice_teacup_inspect",
+			"local_path": "res://assets/audio/voice/voice_teacup_inspect.mp3",
+			"name": "林侦探-发现茶杯药粉",
+			"role": "林侦探",
+			"status": "ready",
+			"text": "壁炉台上的碎瓷片……残留的红茶底部，有未溶解的白色安眠药粉末！",
+			"type": "voice",
+			"voice_role": "zh-CN-YunxiNeural"
+		},
+		{
+			"id": "voice_lin_objection",
+			"local_path": "res://assets/audio/voice/voice_lin_objection.mp3",
+			"name": "林侦探-异议举证击破谎言",
+			"role": "林侦探",
+			"status": "ready",
+			"text": "苏管家！你的不在场证明存在致命矛盾！请看这个时钟——它在十一点十五分就已经彻底卡死停摆，十二点绝不可能敲响！你在撒谎！",
+			"type": "voice",
+			"voice_role": "zh-CN-YunxiNeural"
+		},
+		{
+			"id": "voice_butler_breakdown",
+			"local_path": "res://assets/audio/voice/voice_butler_breakdown.mp3",
+			"name": "苏管家-心理防线崩溃",
+			"role": "苏管家",
+			"status": "ready",
+			"text": "什……什么？！钟怎么会停在那个时候……难道老头子他早就……我、我认罪了！",
+			"type": "voice",
+			"voice_role": "zh-CN-YunjianNeural"
+		},
+		{
+			"id": "voice_ending_victory",
+			"local_path": "res://assets/audio/voice/voice_ending_victory.mp3",
+			"name": "旁白-终局结案",
+			"role": "旁白",
+			"status": "ready",
+			"text": "在确凿的物证面前，伪造的不在场证明瞬间崩塌。案情的真相，终于在暴雨中浮出水面。",
+			"type": "voice",
+			"voice_role": "zh-CN-XiaoxiaoNeural"
+		}
+	]
+}

@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		820.0,
+		100.0
+	],
+	"id": "node_03_explore_living",
+	"next": "node_04_explore_boiler",
+	"scene": "scene_lighthouse_living",
+	"title": "一楼起居室搜证",
+	"type": "explore"
+}

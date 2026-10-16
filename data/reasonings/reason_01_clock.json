@@ -1,0 +1,12 @@
+{
+	"error_hints": {
+		"clue_sleeping_pills": "红茶里的药粉确实说明老爷当时可能已昏迷，但这不能直接推翻管家宣称的【听到时钟敲响】！我们需要针对时钟本身的直接铁证！"
+	},
+	"id": "reason_01_clock",
+	"next_node": "node_05_ending",
+	"question": "苏管家坚称【十二点整听到书房大钟敲响了十二下】作为不在场证明，哪个物证能证明他在撒谎？",
+	"required_clues": [
+		"clue_broken_clock"
+	],
+	"title": "击穿午夜十二点的谎言"
+}

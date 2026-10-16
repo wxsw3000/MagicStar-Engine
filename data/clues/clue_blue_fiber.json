@@ -1,0 +1,13 @@
+{
+	"description": "死者指甲缝中夹有蓝色羊毛纤维，颜色与周砚常戴的蓝色羊毛围巾一致。纤维上沾有微量灯油与血迹。",
+	"id": "clue_blue_fiber",
+	"negative_prompt": "humans, hands, cluttered, text",
+	"prompt": "Macro close-up of tiny blue wool fibers trapped in dried blood and skin flakes, single fiber bundle, cold blue tone, forensic evidence, single object, centered, macro close-up shot, dramatic lighting, isolated",
+	"size": [
+		512.0,
+		512.0
+	],
+	"source": "",
+	"title": "死者指甲中的蓝色羊毛纤维",
+	"type": "item"
+}

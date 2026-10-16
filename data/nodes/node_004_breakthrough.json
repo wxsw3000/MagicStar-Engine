@@ -1,0 +1,11 @@
+{
+	"dialogue": "dialogue_confrontation",
+	"editor_pos": [
+		100.0,
+		340.0
+	],
+	"id": "node_004_breakthrough",
+	"next": "node_005_ending",
+	"title": "击碎伪证",
+	"type": "story"
+}

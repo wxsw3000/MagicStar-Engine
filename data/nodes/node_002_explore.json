@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		460.0,
+		100.0
+	],
+	"id": "node_002_explore",
+	"scene": "scene_study",
+	"time_phase": "phase_2",
+	"title": "书房现场勘验",
+	"type": "explore"
+}

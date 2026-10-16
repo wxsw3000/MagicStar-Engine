@@ -1,0 +1,38 @@
+{
+	"background": "res://projects/case_moonlight_sonata_503/assets/images/backgrounds/bg_scene_backstage_room.png",
+	"explore_points": [
+		{
+			"id": "point_vanity",
+			"name": "梳妆台上的乐谱",
+			"rect": [
+				0.4,
+				0.35,
+				0.2,
+				0.2
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_missing_score"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_doctor_bag",
+			"name": "医生的出诊包",
+			"rect": [
+				0.7,
+				0.6,
+				0.15,
+				0.18
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_doctor_statement"
+			},
+			"type": "once"
+		}
+	],
+	"id": "scene_backstage_room",
+	"name": "后台·钢琴家休息室",
+	"prompt": "small backstage dressing room, vanity mirror with light bulbs, scattered sheet music, red velvet chair, coat rack with black dress, moonlight through small window, highly detailed"
+}

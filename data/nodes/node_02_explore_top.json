@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		460.0,
+		100.0
+	],
+	"id": "node_02_explore_top",
+	"next": "node_03_explore_living",
+	"scene": "scene_lighthouse_top",
+	"title": "塔顶灯室搜证",
+	"type": "explore"
+}

@@ -1,0 +1,55 @@
+{
+  "items": [
+    {
+      "id": "scene_study",
+      "name": "古宅书房",
+      "description": "弥漫着旧书纸张与雨水潮湿气息的昏暗书房，烛台与阴影交错。",
+      "background": "",
+      "explore_points": [
+        {
+          "id": "pt_clock",
+          "name": "【调查】古董座钟",
+          "rect": [0.18, 0.22, 0.16, 0.26],
+          "type": "once",
+          "trigger": {
+            "obtain_clue": "clue_broken_clock",
+            "inspection_text": "指针停留在 21:15。表壳被锐器击碎，停止了走动。"
+          }
+        },
+        {
+          "id": "pt_fusebox",
+          "name": "【调查】电表箱",
+          "rect": [0.72, 0.32, 0.16, 0.26],
+          "type": "once",
+          "trigger": {
+            "obtain_clue": "clue_blackout_record",
+            "inspection_text": "总闸记录仪显示：整栋房子的电源在 22:00 整被强制拉断。"
+          }
+        },
+        {
+          "id": "pt_song_lu",
+          "name": "【交谈】询问宋露",
+          "rect": [0.44, 0.30, 0.18, 0.40],
+          "type": "repeatable",
+          "trigger": {
+            "dialogue": "dialogue_interrogate_song_lu"
+          }
+        },
+        {
+          "id": "pt_deduce_desk",
+          "name": "【推理】整理案情并质询",
+          "rect": [0.38, 0.78, 0.24, 0.14],
+          "type": "repeatable",
+          "conditions": [
+            { "type": "has_clue", "id": "clue_broken_clock" },
+            { "type": "has_clue", "id": "clue_blackout_record" },
+            { "type": "has_clue", "id": "clue_song_lu_alibi" }
+          ],
+          "trigger": {
+            "next_node": "node_003_reasoning"
+          }
+        }
+      ]
+    }
+  ]
+}

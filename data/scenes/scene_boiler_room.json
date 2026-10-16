@@ -1,0 +1,38 @@
+{
+	"background": "res://projects/case_snowbound_lighthouse/assets/images/backgrounds/bg_scene_boiler_room.png",
+	"explore_points": [
+		{
+			"id": "point_coal_pile",
+			"name": "煤堆与工作手套",
+			"rect": [
+				0.3,
+				0.55,
+				0.22,
+				0.25
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_assistant_testimony"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_bloody_rag",
+			"name": "煤堆下的血布",
+			"rect": [
+				0.1,
+				0.7,
+				0.15,
+				0.15
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_bloody_rag"
+			},
+			"type": "once"
+		}
+	],
+	"id": "scene_boiler_room",
+	"name": "灯塔·锅炉房",
+	"prompt": "underground boiler room of a lighthouse, rusty pipes, coal pile in corner, dim orange light from furnace, steam and shadows, wet stone floor, highly detailed, no humans"
+}

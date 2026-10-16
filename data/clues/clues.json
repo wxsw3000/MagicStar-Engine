@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "id": "clue_broken_clock",
+      "name": "停摆的座钟",
+      "type": "item",
+      "description": "古董挂钟的表盘指针死死卡在 21:15。外壳玻璃碎裂，似乎是在外力撞击的瞬间停走的。",
+      "tags": ["物证", "关键时间点"]
+    },
+    {
+      "id": "clue_blackout_record",
+      "name": "电表总闸断电记录",
+      "type": "scene",
+      "description": "智能总电闸的跳闸日志显示：宅邸是 22:00 整被人工直接拉断总闸，在此时刻之前全屋正常通电。",
+      "tags": ["现场", "电力证据"]
+    },
+    {
+      "id": "clue_song_lu_alibi",
+      "name": "宋露的自白口供",
+      "type": "testimony",
+      "description": "宋露坚称：'昨晚暴雨，座钟在21:15突然轰然砸坏停摆，当时我借着书房壁灯的光亲眼目睹，吓了一跳。'",
+      "tags": ["证言", "不在场口供"]
+    }
+  ]
+}

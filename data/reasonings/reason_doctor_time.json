@@ -1,0 +1,16 @@
+{
+	"error_hints": {
+		"clue_manager_alibi": "经理的不在场证明与医生的死亡时间推断没有直接矛盾。",
+		"clue_missing_score": "缺失的乐谱不能直接质疑死亡时间。",
+		"clue_violinist_letter": "威胁信无法推翻医生的验尸结论。"
+	},
+	"id": "reason_doctor_time",
+	"next_node": "node_08_final_reason",
+	"question": "黑木医生声称死亡时间在8点半到9点之间，但录音机在9点自动播放。哪项证据能证明医生在死亡时间上说了谎？",
+	"required_clues": [
+		"clue_broken_glass",
+		"clue_doctor_statement",
+		"clue_tape_recorder"
+	],
+	"title": "质疑医生的死亡时间推断"
+}

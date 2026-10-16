@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		100.0,
+		340.0
+	],
+	"id": "node_04_explore_backstage",
+	"next": "node_05_reason_manager",
+	"scene": "scene_backstage_room",
+	"title": "休息室搜查",
+	"type": "explore"
+}

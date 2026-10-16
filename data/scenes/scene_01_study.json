@@ -1,0 +1,53 @@
+{
+	"background": "res://assets/images/backgrounds/bg_study_storm.png",
+	"bgm": "res://assets/audio/bgm/bgm_suspense_rain.wav",
+	"explore_points": [
+		{
+			"id": "point_clock",
+			"name": "🕰️ 停摆的落地钟",
+			"rect": [
+				0.08,
+				0.25,
+				0.16,
+				0.5
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_broken_clock"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_teacup",
+			"name": "🍵 壁炉旁的碎茶杯",
+			"rect": [
+				0.42,
+				0.52,
+				0.16,
+				0.24
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_sleeping_pills"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_butler",
+			"name": "👤 管家苏伯",
+			"rect": [
+				0.72,
+				0.28,
+				0.22,
+				0.58
+			],
+			"trigger": {
+				"action": "jump_node",
+				"target": "node_03_inquiry"
+			},
+			"type": "repeatable"
+		}
+	],
+	"id": "scene_01_study",
+	"name": "古宅钟楼书房"
+}

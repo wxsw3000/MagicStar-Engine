@@ -1,0 +1,6 @@
+{
+	"description": "观测室的气压计指针卡死在固定位置，玻璃罩内有细微裂缝。仪器底部标签显示最近一次校准是三年前。",
+	"id": "clue_broken_barometer",
+	"title": "损坏的气压计",
+	"type": "item"
+}

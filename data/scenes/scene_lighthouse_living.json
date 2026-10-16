@@ -1,0 +1,38 @@
+{
+	"background": "res://projects/case_snowbound_lighthouse/assets/images/backgrounds/bg_scene_lighthouse_living.png",
+	"explore_points": [
+		{
+			"id": "point_bedside",
+			"name": "千鹤的枕边与航海日志",
+			"rect": [
+				0.55,
+				0.5,
+				0.2,
+				0.22
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_wife_testimony"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_notebook",
+			"name": "死者的私人笔记本",
+			"rect": [
+				0.2,
+				0.4,
+				0.15,
+				0.18
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_morse_log"
+			},
+			"type": "once"
+		}
+	],
+	"id": "scene_lighthouse_living",
+	"name": "灯塔·一楼起居室",
+	"prompt": "cozy but cluttered lighthouse living room, old wooden furniture, fireplace with dying embers, nautical charts on walls, snow piled against windows, dim warm lighting, highly detailed, no humans"
+}

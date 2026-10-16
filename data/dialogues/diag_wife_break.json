@@ -1,0 +1,30 @@
+{
+	"id": "diag_wife_break",
+	"lines": [
+		{
+			"speaker": "九条枫",
+			"text": "千鹤夫人，你说案发时你在卧室睡觉。但你的枕边放着一本航海日志，上面画满了灯塔机械结构图。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_wife_break_1.mp3"
+		},
+		{
+			"speaker": "相马千鹤",
+			"text": "那是我丈夫的笔记……我只是想多了解他的工作。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_wife_break_2.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "你描画的机械结构里，标注了灯室门锁的内部构造。你在研究如何从外部让门反锁——对吗？",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_wife_break_3.mp3"
+		},
+		{
+			"speaker": "相马千鹤",
+			"text": "……源治他变了。自从三年前那次事故后，他变得偏执、多疑。他把灯塔当成自己的王国，把我当成囚犯。我只是……想离开。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_wife_break_4.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "想离开的人不会研究门锁。你在计划什么，千鹤夫人？",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_wife_break_5.mp3"
+		}
+	]
+}

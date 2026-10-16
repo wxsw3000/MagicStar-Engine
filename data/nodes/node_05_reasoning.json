@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		460.0,
+		340.0
+	],
+	"id": "node_05_reasoning",
+	"next": "node_06_ending_true",
+	"reasoning": "reasoning_main",
+	"scene": "scene_machine_room",
+	"type": "reasoning"
+}

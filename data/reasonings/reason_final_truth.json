@@ -1,0 +1,18 @@
+{
+	"error_hints": {
+		"clue_broken_barometer": "气压计只能证明真理子撒谎，但无法锁定真凶。",
+		"clue_researcher_testimony": "真理子的证词提供旁证，但不足以单独定罪。",
+		"clue_wet_footprints": "脚印能证明水岛到过塔顶，但水岛只是从犯而非主谋。"
+	},
+	"id": "reason_final_truth",
+	"next_node": "node_10_ending_truth",
+	"question": "密室、冰锥、血布、伪造的数据——所有线索汇聚。哪组证据能锁定真凶并还原完整手法？",
+	"required_clues": [
+		"clue_ice_pick",
+		"clue_bloody_rag",
+		"clue_wife_testimony",
+		"clue_lamp_log",
+		"clue_morse_log"
+	],
+	"title": "最终推理·冰中真相"
+}

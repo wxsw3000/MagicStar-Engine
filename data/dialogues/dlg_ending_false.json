@@ -1,0 +1,29 @@
+{
+	"id": "dlg_ending_false",
+	"lines": [
+		{
+			"expression": "normal",
+			"speaker": "旁白",
+			"text": "顾长风被露台无足迹与女画家的灯室速写误导，认定苏晚利用画架、绳索与透镜反光攀入灯室。",
+			"voice": "res://projects/white_whale_reef_lighthouse_master/assets/audio/voice/voice_dlg_ending_false_1.mp3"
+		},
+		{
+			"expression": "sad",
+			"speaker": "顾长风",
+			"text": "苏晚，你无法证明自己的清白。暴风雪停后，你会被带走。",
+			"voice": "res://projects/white_whale_reef_lighthouse_master/assets/audio/voice/voice_dlg_ending_false_2.mp3"
+		},
+		{
+			"expression": "normal",
+			"speaker": "周砚",
+			"text": "探长，也许你抓错人了。不过……冰已经化了，盐也快被雪盖住了。",
+			"voice": "res://projects/white_whale_reef_lighthouse_master/assets/audio/voice/voice_dlg_ending_false_3.mp3"
+		},
+		{
+			"expression": "normal",
+			"speaker": "旁白",
+			"text": "下一个暴风雪夜，灯塔突然熄灭，走私船撞上白鲸礁。顾长风站在岸边，听见冰层深处一声细微的裂响——那是盐晶融化的声音，也是他余生无法摆脱的悔恨。",
+			"voice": "res://projects/white_whale_reef_lighthouse_master/assets/audio/voice/voice_dlg_ending_false_4.mp3"
+		}
+	]
+}

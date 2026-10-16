@@ -1,0 +1,15 @@
+{
+	"error_hints": {
+		"clue_broken_barometer": "气压计损坏与千鹤的卧室日志没有直接关联。",
+		"clue_lamp_log": "灯塔记录簿只能说明灯被切换，不能锁定千鹤。",
+		"clue_morse_log": "死者的莫尔斯电码记录无法证明千鹤研究过门锁。"
+	},
+	"id": "reason_wife_lie",
+	"next_node": "node_09_final_reason",
+	"question": "相马千鹤声称案发时在卧室睡觉，但哪项证据能证明她研究过灯塔门锁的构造？",
+	"required_clues": [
+		"clue_wife_testimony",
+		"clue_ice_pick"
+	],
+	"title": "击碎遗孀的睡眠不在场证明"
+}

@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		820.0,
+		100.0
+	],
+	"id": "node_03_explore_lobby",
+	"next": "node_04_explore_backstage",
+	"scene": "scene_lobby",
+	"title": "门厅与监控调查",
+	"type": "explore"
+}

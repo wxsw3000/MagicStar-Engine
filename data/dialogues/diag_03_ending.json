@@ -1,0 +1,16 @@
+{
+	"id": "diag_03_ending",
+	"lines": [
+		{
+			"character_image": "res://assets/images/characters/char_butler_nervous.png",
+			"speaker": "苏管家",
+			"text": "什……什么？！钟怎么会停在那个时候……难道老头子他早就……我、我认罪了！",
+			"voice": "res://assets/audio/voice/voice_butler_breakdown.mp3"
+		},
+		{
+			"speaker": "旁白",
+			"text": "在确凿的物证面前，伪造的不在场证明瞬间崩塌。案情的真相，终于在暴雨中浮出水面。",
+			"voice": "res://assets/audio/voice/voice_ending_victory.mp3"
+		}
+	]
+}

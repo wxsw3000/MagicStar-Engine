@@ -1,0 +1,41 @@
+{
+  "items": [
+    {
+      "id": "node_001_intro",
+      "type": "story",
+      "title": "初抵雨夜古宅",
+      "dialogue": "dialogue_intro",
+      "is_milestone": true,
+      "time_phase": "phase_1",
+      "next": "node_002_explore"
+    },
+    {
+      "id": "node_002_explore",
+      "type": "explore",
+      "title": "书房现场勘验",
+      "scene": "scene_study",
+      "time_phase": "phase_2"
+    },
+    {
+      "id": "node_003_reasoning",
+      "type": "reasoning",
+      "title": "当面对质推理",
+      "reasoning": "reasoning_song_lu_lie",
+      "is_milestone": true,
+      "time_phase": "phase_3"
+    },
+    {
+      "id": "node_004_breakthrough",
+      "type": "story",
+      "title": "击碎伪证",
+      "dialogue": "dialogue_confrontation",
+      "next": "node_005_ending"
+    },
+    {
+      "id": "node_005_ending",
+      "type": "ending",
+      "title": "序章破局",
+      "ending": "ending_prologue_cleared"
+    }
+  ]
+}

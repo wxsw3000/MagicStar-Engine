@@ -1,0 +1,10 @@
+{
+	"editor_pos": [
+		820.0,
+		100.0
+	],
+	"id": "node_03_explore_toolbox",
+	"next": "node_04_explore_machine",
+	"scene": "scene_lightroom_toolbox",
+	"type": "explore"
+}

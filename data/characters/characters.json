@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "id": "char_lin",
+      "name": "林侦探",
+      "identity": "私家侦探",
+      "portrait": ""
+    },
+    {
+      "id": "char_song_lu",
+      "name": "宋露",
+      "identity": "古宅女主人",
+      "personality": ["警惕", "苍白", "言辞闪烁"],
+      "portrait": ""
+    }
+  ]
+}

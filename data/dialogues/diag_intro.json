@@ -1,0 +1,30 @@
+{
+	"id": "diag_intro",
+	"lines": [
+		{
+			"speaker": "旁白",
+			"text": "暴风雪肆虐了整整一夜。孤岛灯塔与外界的唯一航线被巨浪吞没，无线电在午夜后便只剩杂音。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_intro_1.mp3"
+		},
+		{
+			"speaker": "水岛悠斗",
+			"text": "九条侦探……源治先生他……他在塔顶灯室里……门从里面反锁了，我们撞开门的时候，他已经……",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_intro_2.mp3"
+		},
+		{
+			"speaker": "相马千鹤",
+			"text": "钥匙……钥匙插在他胸口上。那是灯塔铁门唯一的钥匙。他把自己锁在里面，然后……为什么？",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_intro_3.mp3"
+		},
+		{
+			"speaker": "东云真理子",
+			"text": "死亡时间大约在凌晨2点到3点之间。但暴风雪掩盖了一切外部痕迹，塔外不可能有人进入。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_intro_4.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "密室、孤岛、暴风雪……看似完美的不可能犯罪。但各位——凶手就在我们中间。请配合我搜查灯塔的每一个角落。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_intro_5.mp3"
+		}
+	]
+}

@@ -1,0 +1,19 @@
+{
+	"confrontation_dialogue_id": "dlg_reasoning_confrontation",
+	"deduction": "死者后脑遭黄铜扳手重击死亡。真凶周砚在灯室杀人后，将竖向插销抬起，用高浓度盐水冻成的冰楔垫在插销底座与导轨之间，使插销保持抬起未落。铁门仍可自由开关。他点燃小煤油备用灯，调小主灯余焰，让密闭灯室缓慢升温。冰楔融化后，插销因自身重力沿导轨落下，插入门框插孔，铁门从内侧闩死。周砚带上门离开，回到机房，在九点五十五分故意记录发电机日志，制造不在场证明。门闩下盐晶、门框新鲜擦痕、死者指甲蓝色羊毛纤维、扳手缝隙血迹、日志盐分与保温瓶盐水残留共同构成闭环。",
+	"failure_ending": "ending_false",
+	"final_clue": "clue_bottle_salt",
+	"id": "reasoning_main",
+	"key_break_line": "不可能！我明明等冰化尽，听见插销落下才下楼，那时我已在机房！",
+	"next_node": "node_01_intro",
+	"question": "",
+	"required_clues": [
+		"clue_blue_fiber",
+		"clue_bolt_salt",
+		"clue_bottle_salt",
+		"clue_log_salt",
+		"clue_wrench_blood"
+	],
+	"success_ending": "ending_true",
+	"title": "冰楔延时密室推演"
+}

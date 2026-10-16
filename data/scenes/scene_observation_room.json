@@ -1,0 +1,38 @@
+{
+	"background": "res://projects/case_snowbound_lighthouse/assets/images/backgrounds/bg_scene_observation_room.png",
+	"explore_points": [
+		{
+			"id": "point_barometer",
+			"name": "损坏的气压计",
+			"rect": [
+				0.45,
+				0.4,
+				0.18,
+				0.2
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_broken_barometer"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_data_log",
+			"name": "真理子的观测记录",
+			"rect": [
+				0.15,
+				0.55,
+				0.2,
+				0.22
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_researcher_testimony"
+			},
+			"type": "once"
+		}
+	],
+	"id": "scene_observation_room",
+	"name": "灯塔·气象观测室",
+	"prompt": "small meteorological observation room, broken barometer on desk, weather charts pinned to wall, frost on window, green lamp glow, papers scattered, highly detailed, no humans"
+}

@@ -1,0 +1,14 @@
+{
+	"default_fail_hint": "这两条线索无法证明时间与现场存在矛盾，请仔细核对座钟停摆与电闸跳闸的时间差！",
+	"error_hints": {
+		"clue_song_lu_alibi": "这是宋露自己的口供陈述，你需要出示客观物证来推翻她的说法，而不是重复口供。"
+	},
+	"id": "reasoning_song_lu_lie",
+	"next_node": "node_004_breakthrough",
+	"question": "宋露声称‘21:15座钟砸坏停摆时，她在书房借着壁灯目睹’，哪两条线索证明她在说谎？",
+	"required_clues": [
+		"clue_broken_clock",
+		"clue_blackout_record"
+	],
+	"title": ""
+}

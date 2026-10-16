@@ -1,0 +1,11 @@
+{
+	"dialogue": "diag_intro",
+	"editor_pos": [
+		100.0,
+		100.0
+	],
+	"id": "node_01_intro",
+	"next": "node_02_explore_top",
+	"title": "序幕：暴雪封锁的孤岛",
+	"type": "story"
+}

@@ -1,0 +1,53 @@
+{
+	"background": "res://projects/case_snowbound_lighthouse/assets/images/backgrounds/bg_scene_lighthouse_top.png",
+	"explore_points": [
+		{
+			"id": "point_door_lock",
+			"name": "反锁的铁门与锁孔",
+			"rect": [
+				0.7,
+				0.3,
+				0.18,
+				0.25
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_ice_pick"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_lamp_mechanism",
+			"name": "灯塔旋转机械与记录簿",
+			"rect": [
+				0.25,
+				0.45,
+				0.2,
+				0.2
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_lamp_log"
+			},
+			"type": "once"
+		},
+		{
+			"id": "point_stairs",
+			"name": "螺旋楼梯上的脚印",
+			"rect": [
+				0.05,
+				0.6,
+				0.15,
+				0.25
+			],
+			"trigger": {
+				"action": "clue",
+				"target": "clue_wet_footprints"
+			},
+			"type": "once"
+		}
+	],
+	"id": "scene_lighthouse_top",
+	"name": "灯塔·塔顶灯室",
+	"prompt": "interior of a lighthouse lamp room, massive rotating fresnel lens, moonlight and snowstorm visible through glass panes, blood stain on wooden floor, broken lock on iron door, cold blue atmosphere, highly detailed, no humans"
+}

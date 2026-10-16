@@ -1,0 +1,15 @@
+{
+	"error_hints": {
+		"clue_assistant_testimony": "水岛的证词无法证明真理子的数据是伪造的。",
+		"clue_lamp_log": "灯塔记录簿与气象数据没有直接关联。",
+		"clue_wet_footprints": "脚印指向水岛，不能证明真理子离开过观测室。"
+	},
+	"id": "reason_researcher_lie",
+	"next_node": "node_08_reason_wife",
+	"question": "东云真理子声称整晚在观测室记录数据，但哪项证据能证明她的记录是伪造的？",
+	"required_clues": [
+		"clue_researcher_testimony",
+		"clue_broken_barometer"
+	],
+	"title": "揭穿研究员的伪造数据"
+}

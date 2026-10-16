@@ -1,0 +1,11 @@
+{
+	"dialogue": "diag_02_inquiry",
+	"editor_pos": [
+		820.0,
+		100.0
+	],
+	"id": "node_03_inquiry",
+	"time_phase": "破案辩论",
+	"title": "当面质询管家",
+	"type": "story"
+}

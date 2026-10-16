@@ -1,0 +1,30 @@
+{
+	"id": "diag_researcher_break",
+	"lines": [
+		{
+			"speaker": "九条枫",
+			"text": "东云小姐，你记录中凌晨2点的气压值与官方浮标完全一致。但观测室的气压计三天前就坏了。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_researcher_break_1.mp3"
+		},
+		{
+			"speaker": "东云真理子",
+			"text": "……我承认，那份数据是我根据经验估算的。气象研究员偶尔也会偷懒。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_researcher_break_2.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "但你在估算数据的那一刻，实际上正在塔顶灯室。你看到了什么，或者——你做了什么？",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_researcher_break_3.mp3"
+		},
+		{
+			"speaker": "东云真理子",
+			"text": "我听到灯室里有人在争吵。源治先生和水岛的声音。然后是一声闷响，之后灯突然灭了。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_researcher_break_4.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "所以你选择了沉默。但沉默本身就是一种包庇。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_researcher_break_5.mp3"
+		}
+	]
+}

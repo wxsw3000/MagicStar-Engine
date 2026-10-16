@@ -1,0 +1,30 @@
+{
+	"id": "diag_assistant_break",
+	"lines": [
+		{
+			"speaker": "九条枫",
+			"text": "水岛先生，你说你凌晨1点到3点一直在锅炉房添煤。但煤堆的消耗量连你声称的三分之一都不到。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_assistant_break_1.mp3"
+		},
+		{
+			"speaker": "水岛悠斗",
+			"text": "那……那是因为煤的质量不好，烧得慢……",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_assistant_break_2.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "你的工作手套上沾的是灯油，不是煤灰。而塔顶楼梯的脚印——方向是向下的。你从塔顶下来，而不是从锅炉房上去。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_assistant_break_3.mp3"
+		},
+		{
+			"speaker": "水岛悠斗",
+			"text": "我……我只是上去检查了一下灯！源治先生让我每晚都要检查！",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_assistant_break_4.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "检查灯需要带着血布吗？锅炉房煤堆下的血布，你打算怎么解释？",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_assistant_break_5.mp3"
+		}
+	]
+}

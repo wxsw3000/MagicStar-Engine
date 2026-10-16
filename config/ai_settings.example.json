@@ -1,0 +1,10 @@
+{
+	"bg_base_prompt": "scenery, background, highly detailed, no humans",
+	"character_base_prompt": "solo, waist-up portrait, standing pose, white background",
+	"checkpoint": "sd_xl_turbo_1.0.safetensors",
+	"comfyui_server": "http://127.0.0.1:8188",
+	"comfyui_user": "",
+	"comfyui_password": "",
+	"global_negative_prompt": "worst quality, low quality, bad anatomy, deformed limbs, extra fingers",
+	"global_style_prompt": "masterpiece, best quality, anime visual novel, dark mystery, dramatic lighting, moonlight, rain"
+}

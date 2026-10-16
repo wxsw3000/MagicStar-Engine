@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		100.0,
+		340.0
+	],
+	"id": "node_04_explore_boiler",
+	"next": "node_05_explore_observation",
+	"scene": "scene_boiler_room",
+	"title": "锅炉房搜证",
+	"type": "explore"
+}

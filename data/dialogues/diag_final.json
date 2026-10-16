@@ -1,0 +1,40 @@
+{
+	"id": "diag_final",
+	"lines": [
+		{
+			"speaker": "九条枫",
+			"text": "密室的手法已经解开了。凶手利用冰锥从门缝外拨动锁舌，使门从内部反锁。冰屑融化后只留下水渍——而暴风雪提供了完美的冰冻条件。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_1.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "但真正的破绽，是死者胸口的钥匙。那把钥匙表面附着薄冰，锁孔周围也有冰屑。如果钥匙一直在死者胸口，它不可能结冰——它是在死亡之后被人从外部插入的。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_2.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "凶手是谁？是那个在锅炉房留下血布、在楼梯上留下向下脚印、在灯油手套上暴露自己的人——水岛悠斗。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_3.mp3"
+		},
+		{
+			"speaker": "水岛悠斗",
+			"text": "……我没想到他会死。我只是想让他打开门！他把自己锁在里面，我害怕他做傻事……我用冰锥从外面拨开了锁。进去的时候，他已经倒在血泊里，胸口插着那把钥匙……我吓坏了，把血布扔进煤堆，假装什么都没发生……",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_4.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "但死亡时间不对。如果他在你进去之前就已经死了，那么真正的凶手，是在你之前进入灯室的人。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_5.mp3"
+		},
+		{
+			"speaker": "相马千鹤",
+			"text": "……是我。我趁他睡着时，用冰锥刺入了他的胸口。然后我把门从外面拨锁，把钥匙插进他伤口。我以为暴风雪会掩盖一切。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_6.mp3"
+		},
+		{
+			"speaker": "九条枫",
+			"text": "你利用了水岛的恐惧，让他成为你的替罪羊。但冰锥上的指纹不会说谎——真相，永远藏在冰中。",
+			"voice": "res://projects/case_snowbound_lighthouse/assets/audio/voice/voice_diag_final_7.mp3"
+		}
+	]
+}

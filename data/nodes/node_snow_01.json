@@ -1,0 +1,11 @@
+{
+	"dialogue": "diag_snow_intro",
+	"editor_pos": [
+		100.0,
+		100.0
+	],
+	"id": "node_snow_01",
+	"next": "node_snow_explore",
+	"title": "风雪前奏",
+	"type": "story"
+}

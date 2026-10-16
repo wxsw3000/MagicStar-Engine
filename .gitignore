@@ -1,0 +1,47 @@
+# ============================================================
+# MagicStar-Engine .gitignore
+# ============================================================
+
+# 1. 创作者私有案件与工程数据 (User Cases & Story Projects)
+projects/*
+!projects/README.md
+!projects/.gitkeep
+*.avgpkg
+
+# 2. 本地隐私配置与日志文件 (Sensitive Credentials & Dev Logs)
+config/ai_settings.json
+开发日志/
+初步需求.txt
+project_master_demo.json
+test_master_pack.json
+*.log
+
+# 3. Godot 引擎缓存与临时导入产物 (Godot Engine Imports & Cache)
+.godot/
+*.translation
+
+# 4. 构建与导出成果 (Builds & Archive Exports)
+builds/
+archive/
+bin/
+*.exe
+*.pck
+*.apk
+*.aab
+
+# 5. 测试生成素材与深度学习大模型 (Test Samples & ONNX Models)
+samples/
+*.onnx
+
+# 6. Python 缓存与虚拟环境 (Python Cache & Environment)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# 7. 操作系统与 IDE 配置 (OS & IDE Configurations)
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

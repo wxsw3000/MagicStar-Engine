@@ -1,0 +1,66 @@
+{
+	"id": "dialogue_interrogate_song_lu",
+	"topics": [
+		{
+			"conditions": [],
+			"id": "topic_what_happened",
+			"lines": [
+				{
+					"speaker": "林侦探",
+					"text": "昨晚你听到什么异常声响了吗？"
+				},
+				{
+					"speaker": "宋露",
+					"text": "外面的雷雨声太响了，但我依稀听到走廊有沉重的脚步声……我当时害怕极了，一直反锁在书房里不敢开门。"
+				}
+			],
+			"title": "【询问】关于昨晚书房的异样"
+		},
+		{
+			"conditions": [],
+			"id": "topic_alibi",
+			"lines": [
+				{
+					"speaker": "林侦探",
+					"text": "案发那个时间段，你确信自己都在书房里？"
+				},
+				{
+					"speaker": "宋露",
+					"text": "我敢发誓！我一直在借着书桌壁灯看书，直到座钟在 21:15 轰然被砸坏停走，我被那声巨响吓得整个人缩在椅子上！"
+				},
+				{
+					"obtain_clue": "clue_song_lu_alibi",
+					"speaker": "林侦探",
+					"text": "（她强调了 21:15 这个具体的时间点……先记下这个口供。）"
+				}
+			],
+			"title": "【询问】关于你的不在场证明"
+		},
+		{
+			"conditions": [
+				{
+					"id": "clue_broken_clock",
+					"type": "has_clue"
+				}
+			],
+			"id": "topic_clock",
+			"lines": [
+				{
+					"speaker": "林侦探",
+					"text": "那座停在 21:15 的座钟，是你经常维护的古董吗？"
+				},
+				{
+					"speaker": "宋露",
+					"text": "对，那是我父亲留下的遗物。走时很准……如果不是被砸坏，它绝不会停在那个时刻！"
+				}
+			],
+			"title": "【出示】关于那座被砸坏的挂钟"
+		},
+		{
+			"conditions": [],
+			"id": "exit",
+			"lines": [],
+			"title": "【离开】结束盘问"
+		}
+	]
+}

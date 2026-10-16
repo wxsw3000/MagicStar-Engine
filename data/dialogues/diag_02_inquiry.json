@@ -1,0 +1,20 @@
+{
+	"choices": [
+		{
+			"next_node": "node_04_reasoning",
+			"text": "指出不在场证明中的致命矛盾（出示证物）"
+		},
+		{
+			"next_node": "node_02_explore",
+			"text": "继续搜查书房现场其他线索"
+		}
+	],
+	"id": "diag_02_inquiry",
+	"lines": [
+		{
+			"character_image": "res://assets/images/characters/char_detective_normal.png",
+			"speaker": "林侦探",
+			"text": "苏管家，关于你声称在午夜12点听到书房大钟报时作为不在场证明……我已经看穿了你的谎言！"
+		}
+	]
+}

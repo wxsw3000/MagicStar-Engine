@@ -1,0 +1,11 @@
+{
+	"editor_pos": [
+		460.0,
+		100.0
+	],
+	"id": "node_02_explore_hall",
+	"next": "node_03_explore_lobby",
+	"scene": "scene_concert_hall",
+	"title": "演奏厅搜证",
+	"type": "explore"
+}

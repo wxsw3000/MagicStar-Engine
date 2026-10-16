@@ -1,0 +1,672 @@
+[gd_scene load_steps=2 format=3 uid="uid://bq7qev4f4w62o"]
+
+[ext_resource type="Script" path="res://scenes/main.gd" id="1_main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.06, 0.07, 0.09, 1)
+
+[node name="BgTexture" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="CharacterLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Portrait" type="TextureRect" parent="CharacterLayer"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -680.0
+offset_top = -460.0
+offset_right = -40.0
+offset_bottom = 460.0
+grow_horizontal = 0
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BgmPlayer" type="AudioStreamPlayer" parent="."]
+volume_db = -8.0
+
+[node name="VoicePlayer" type="AudioStreamPlayer" parent="."]
+
+[node name="SfxPlayer" type="AudioStreamPlayer" parent="."]
+
+[node name="ExploreContainer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 64.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_right = 24
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopBar/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="SceneTitleLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "📍 古宅书房"
+
+[node name="PhaseLabel" type="Label" parent="TopBar/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.82, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "⌛ 阶段: 雨夜搜查"
+
+[node name="Spacer" type="Control" parent="TopBar/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnNotebook" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(130, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "📂 随身笔记"
+
+[node name="BtnTimeline" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(130, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "⏳ 案件脉络"
+
+[node name="BtnSave" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "💾 存档"
+
+[node name="BtnLoad" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(90, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "📖 读档"
+
+[node name="BtnEditor" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "🛠️ 创作器"
+
+[node name="BtnHub" type="Button" parent="TopBar/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(110, 40)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "🏠 工程中心"
+
+[node name="DialogueLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ChoiceContainer" type="VBoxContainer" parent="DialogueLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -340.0
+offset_top = -140.0
+offset_right = 340.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+
+[node name="DialogueBox" type="PanelContainer" parent="DialogueLayer"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 80.0
+offset_top = -240.0
+offset_right = -80.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="DialogueLayer/DialogueBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="DialogueLayer/DialogueBox/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SpeakerContainer" type="HBoxContainer" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="SpeakerLabel" type="Label" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer/SpeakerContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 24
+text = "说话者"
+
+[node name="Spacer" type="Control" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer/SpeakerContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ContentLabel" type="Label" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 22
+text = "对话内容..."
+autowrap_mode = 3
+
+[node name="IndicatorContainer" type="HBoxContainer" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer/IndicatorContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ContinueIndicator" type="Label" parent="DialogueLayer/DialogueBox/MarginContainer/VBoxContainer/IndicatorContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 0.8)
+theme_override_font_sizes/font_size = 16
+text = "▼ 点击继续"
+
+[node name="ModalBackdrop" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.05, 0.75)
+
+[node name="NotebookModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = -340.0
+offset_right = 600.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="NotebookModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NotebookModal/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="NotebookModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 24
+text = "📋 随身搜证笔记"
+
+[node name="Spacer" type="Control" parent="NotebookModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnCloseNotebook" type="Button" parent="NotebookModal/MarginContainer/VBoxContainer/Header"]
+custom_minimum_size = Vector2(100, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "✕ 关闭"
+
+[node name="BodySplit" type="HBoxContainer" parent="NotebookModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="LeftPanel" type="VBoxContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit"]
+custom_minimum_size = Vector2(440, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ListHeader" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/LeftPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 17
+text = "🔍 已收录线索与证物"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ClueList" type="VBoxContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/LeftPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="RightPanel" type="PanelContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
+
+[node name="DetailBox" type="VBoxContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DetailTitle" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 24
+text = "线索名称"
+
+[node name="MetaHBox" type="HBoxContainer" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DetailTag" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox/MetaHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "类型: 现场物证"
+
+[node name="Dot" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox/MetaHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 16
+text = "|"
+
+[node name="DetailSource" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox/MetaHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 16
+text = "出处: 书房调查"
+
+[node name="HSeparator" type="HSeparator" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+
+[node name="DetailDesc" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 19
+text = "线索详细描述..."
+autowrap_mode = 3
+
+[node name="NotebookTip" type="Label" parent="NotebookModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 15
+text = "📌 收集的线索将在质询推理环节作为破案铁证出示。"
+
+[node name="ReasoningModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -680.0
+offset_top = -370.0
+offset_right = 680.0
+offset_bottom = 370.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ReasoningModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ReasoningModal/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Header" type="HBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 24
+text = "⚖️ 逻辑辩论与破绽举证"
+
+[node name="Subtitle" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "   — 击破谎言，出示矛盾铁证"
+
+[node name="Spacer" type="Control" parent="ReasoningModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnCloseReasoning" type="Button" parent="ReasoningModal/MarginContainer/VBoxContainer/Header"]
+custom_minimum_size = Vector2(110, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "✕ 返回搜查"
+
+[node name="QuestionBanner" type="PanelContainer" parent="ReasoningModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/QuestionBanner"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="QuestionLabel" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/QuestionBanner/MarginContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
+theme_override_font_sizes/font_size = 20
+text = "❓ 质询核心疑问..."
+autowrap_mode = 3
+
+[node name="BodySplit" type="HBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="LeftPanel" type="VBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit"]
+custom_minimum_size = Vector2(480, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ListHeader" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/LeftPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 17
+text = "📦 随身证物清单 (点击选定出示)"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/LeftPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ReasoningClueList" type="VBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/LeftPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="RightPanel" type="PanelContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
+
+[node name="DetailBox" type="VBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ReasoningDetailTitle" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 24
+text = "证物名称"
+
+[node name="MetaHBox" type="HBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ReasoningDetailTag" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox/MetaHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "分类: 现场物证"
+
+[node name="Dot" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox/MetaHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.5, 0.6, 1)
+theme_override_font_sizes/font_size = 16
+text = "|"
+
+[node name="ReasoningDetailSource" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox/MetaHBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 16
+text = "出处: 书房调查"
+
+[node name="HSeparator" type="HSeparator" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+
+[node name="ReasoningDetailDesc" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 19
+text = "证物详细调查鉴定信息..."
+autowrap_mode = 3
+
+[node name="StatusBadge" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/BodySplit/RightPanel/MarginContainer/DetailBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "💡 选定后请点击右下角按钮直接以此证物反驳对方！"
+
+[node name="Footer" type="HBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="HintContainer" type="VBoxContainer" parent="ReasoningModal/MarginContainer/VBoxContainer/Footer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ReasoningHintLabel" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/Footer/HintContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 3
+
+[node name="SelectedSummaryLabel" type="Label" parent="ReasoningModal/MarginContainer/VBoxContainer/Footer/HintContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.45, 1)
+theme_override_font_sizes/font_size = 17
+text = "准备出示: 【未选择】"
+
+[node name="BtnSubmitReasoning" type="Button" parent="ReasoningModal/MarginContainer/VBoxContainer/Footer"]
+custom_minimum_size = Vector2(260, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "⚡ 举证出示 (OBJECTION!)"
+
+[node name="TimelineModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -480.0
+offset_top = -300.0
+offset_right = 480.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TimelineModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TimelineModal/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="TimelineModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="TimelineModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 24
+text = "⏳ 案件脉络 · 时光机回溯"
+
+[node name="Spacer" type="Control" parent="TimelineModal/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnCloseTimeline" type="Button" parent="TimelineModal/MarginContainer/VBoxContainer/Header"]
+custom_minimum_size = Vector2(100, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "✕ 关闭"
+
+[node name="Tip" type="Label" parent="TimelineModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 16
+text = "点击历史里程碑可回溯剧情状态，已解锁的线索将自动保留："
+
+[node name="ScrollContainer" type="ScrollContainer" parent="TimelineModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TimelineList" type="VBoxContainer" parent="TimelineModal/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="EndingModal" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -440.0
+offset_top = -240.0
+offset_right = 440.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="EndingModal"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EndingModal/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="EndingTitle" type="Label" parent="EndingModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 32
+text = "序章结案"
+horizontal_alignment = 1
+
+[node name="EndingDesc" type="Label" parent="EndingModal/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+text = "案件调查结论..."
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BtnRestart" type="Button" parent="EndingModal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(200, 52)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "🔄 重新体验本案"
+
+[node name="ToastPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 80.0
+offset_right = 260.0
+offset_bottom = 136.0
+grow_horizontal = 2
+
+[node name="ToastLabel" type="Label" parent="ToastPanel"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "通知消息"
+horizontal_alignment = 1
+vertical_alignment = 1

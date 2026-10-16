@@ -1,0 +1,13 @@
+{
+	"dialogue": "dialogue_intro",
+	"editor_pos": [
+		100.0,
+		100.0
+	],
+	"id": "node_001_intro",
+	"is_milestone": true,
+	"next": "node_002_explore",
+	"time_phase": "phase_1",
+	"title": "初抵雨夜古宅",
+	"type": "story"
+}

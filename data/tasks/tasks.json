@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "id": "task_study_investigate",
+      "name": "勘验书房搜证",
+      "description": "搜寻书房内的关键时间证据与女主人宋露的证言，找齐 3 条核心线索。",
+      "required_clues": ["clue_broken_clock", "clue_blackout_record", "clue_song_lu_alibi"],
+      "reward": {
+        "clues": []
+      }
+    }
+  ]
+}

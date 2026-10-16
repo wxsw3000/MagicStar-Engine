@@ -1,0 +1,84 @@
+[gd_scene load_steps=2 format=3 uid="uid://df7h2k9p1n8m4"]
+
+[ext_resource type="Script" path="res://scenes/launcher.gd" id="1_launcher"]
+
+[node name="Launcher" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_launcher")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 36
+text = "🌟 MagicStar AVG Engine"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+text = "轻量级 2D 悬疑推理 AVG 游戏引擎与可视化创作平台"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="BtnEditor" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(260, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🛠️ 启动 AVG Studio
+(可视化无代码创作器)"
+
+[node name="BtnPlay" type="Button" parent="CenterContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(260, 110)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🎮 直接运行游戏
+(玩家视角试玩)"
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Tips" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.55, 0.65, 1)
+theme_override_font_sizes/font_size = 14
+text = "提示：在 AVG Studio 创作者模式中，可随时按 F5 或点击顶部按钮一键启动游戏试玩与多平台打包。"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer/BtnEditor" to="." method="_on_btn_editor_pressed"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/HBoxContainer/BtnPlay" to="." method="_on_btn_play_pressed"]

@@ -1,0 +1,15 @@
+{
+	"error_hints": {
+		"clue_bloody_rag": "血布只能证明水岛接触过血迹，不能解释他为何撒谎。",
+		"clue_ice_pick": "冰锥与锁孔划痕只能证明密室手法，无法直接证明水岛的行踪。",
+		"clue_lamp_log": "灯塔记录簿只说明灯被切换为自动模式，不能锁定切换者。"
+	},
+	"id": "reason_assistant_lie",
+	"next_node": "node_07_reason_researcher",
+	"question": "水岛悠斗声称案发时一直在锅炉房添煤，但哪项证据能证明他曾在塔顶出现？",
+	"required_clues": [
+		"clue_assistant_testimony",
+		"clue_wet_footprints"
+	],
+	"title": "拆穿助理的锅炉房谎言"
+}
