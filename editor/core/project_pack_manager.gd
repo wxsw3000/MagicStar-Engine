@@ -102,7 +102,7 @@ static func import_master_json(file_path: String) -> Dictionary:
 		AIAssetMgr.save_ai_settings(data["ai_settings"])
 		stats["ai_settings"] = true
 		
-	# 2. 解包核心剧情数据各目录
+	# 2. 解包核心剧情数据各目录至内存
 	stats["nodes"] = unpack_category("nodes", data.get("nodes", {}))
 	stats["scenes"] = unpack_category("scenes", data.get("scenes", {}))
 	stats["dialogues"] = unpack_category("dialogues", data.get("dialogues", {}))
@@ -117,8 +117,8 @@ static func import_master_json(file_path: String) -> Dictionary:
 		AIAssetMgr.save_manifest(data["asset_manifest"])
 		stats["asset_manifest"] = data["asset_manifest"].size()
 		
-	# 重新加载底层数据系统并同步至工程主文件
-	DataManager.load_all_data()
+	# 校验底层数据系统并同步存盘至当前活动工程主文件
+	DataManager.validate_data()
 	ProjectContext.save_active_project()
 	
 	result.success = true
@@ -131,7 +131,6 @@ static func import_master_json(file_path: String) -> Dictionary:
 	return result
 
 static func unpack_category(category: String, dict_or_arr: Variant) -> int:
-	var count = 0
 	var items = {}
 	if dict_or_arr is Dictionary:
 		items = dict_or_arr
@@ -140,9 +139,13 @@ static func unpack_category(category: String, dict_or_arr: Variant) -> int:
 			if item is Dictionary and item.has("id"):
 				items[item["id"]] = item
 				
-	for id in items:
-		var item_data = items[id]
-		if item_data is Dictionary:
-			DataManager.save_item(category, str(id), item_data)
-			count += 1
-	return count
+	match category:
+		"nodes": DataManager.nodes = items
+		"scenes": DataManager.scenes = items
+		"dialogues": DataManager.dialogues = items
+		"clues": DataManager.clues = items
+		"tasks": DataManager.tasks = items
+		"characters": DataManager.characters = items
+		"reasonings": DataManager.reasonings = items
+		"endings": DataManager.endings = items
+	return items.size()

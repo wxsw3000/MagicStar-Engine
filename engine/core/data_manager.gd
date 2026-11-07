@@ -23,6 +23,11 @@ func _ready() -> void:
 	pass
 
 func load_all_data() -> void:
+	if ProjectContext and not ProjectContext.active_project_dir.is_empty():
+		print("[DataManager] 正在从当前活动工程重新加载数据: %s" % ProjectContext.active_project_dir)
+		ProjectContext.load_project(ProjectContext.active_project_dir)
+		return
+		
 	print("[DataManager] 开始加载数据配置...")
 	load_configs()
 	
@@ -79,26 +84,27 @@ func save_json_file(path: String, data: Variant) -> bool:
 	return true
 
 func save_item(category: String, id: String, data: Dictionary) -> bool:
+	match category:
+		"nodes": nodes[id] = data
+		"scenes": scenes[id] = data
+		"dialogues": dialogues[id] = data
+		"clues": clues[id] = data
+		"tasks": tasks[id] = data
+		"characters": characters[id] = data
+		"reasonings": reasonings[id] = data
+		"endings": endings[id] = data
+	validate_data()
+	
+	# 自包含工程模式：优先存入当前工程 project.json，不再污染引擎 res://data/ 目录
+	if ProjectContext and not ProjectContext.active_project_dir.is_empty():
+		ProjectContext.save_active_project()
+		return true
+		
 	var dir_path = DATA_ROOT + category
 	var file_path = dir_path + "/" + id + ".json"
-	var success = save_json_file(file_path, data)
-	if success:
-		match category:
-			"nodes": nodes[id] = data
-			"scenes": scenes[id] = data
-			"dialogues": dialogues[id] = data
-			"clues": clues[id] = data
-			"tasks": tasks[id] = data
-			"characters": characters[id] = data
-			"reasonings": reasonings[id] = data
-			"endings": endings[id] = data
-		validate_data()
-	return success
+	return save_json_file(file_path, data)
 
 func delete_item(category: String, id: String) -> bool:
-	var file_path = DATA_ROOT + category + "/" + id + ".json"
-	if FileAccess.file_exists(file_path):
-		DirAccess.remove_absolute(file_path)
 	match category:
 		"nodes": nodes.erase(id)
 		"scenes": scenes.erase(id)
@@ -109,14 +115,29 @@ func delete_item(category: String, id: String) -> bool:
 		"reasonings": reasonings.erase(id)
 		"endings": endings.erase(id)
 	validate_data()
+	
+	# 自包含工程模式：优先存入当前工程 project.json，不再污染引擎 res://data/ 目录
+	if ProjectContext and not ProjectContext.active_project_dir.is_empty():
+		ProjectContext.save_active_project()
+		return true
+		
+	var file_path = DATA_ROOT + category + "/" + id + ".json"
+	if FileAccess.file_exists(file_path):
+		DirAccess.remove_absolute(file_path)
 	return true
 
 func save_game_config(data: Dictionary) -> bool:
 	game_config = data
+	if ProjectContext and not ProjectContext.active_project_dir.is_empty():
+		ProjectContext.save_active_project()
+		return true
 	return save_json_file(CONFIG_ROOT + "game_config.json", data)
 
 func save_flow_config(data: Dictionary) -> bool:
 	flow_config = data
+	if ProjectContext and not ProjectContext.active_project_dir.is_empty():
+		ProjectContext.save_active_project()
+		return true
 	return save_json_file(CONFIG_ROOT + "flow_config.json", data)
 
 func load_directory_json(dir_path: String) -> Dictionary:

@@ -1,3 +1,18 @@
 {
+	"phases": {
+		"phase_1": {
+			"name": "搜证调查",
+			"nodes": [
+				"node_01_intro",
+				"node_02_explore"
+			]
+		},
+		"phase_2": {
+			"name": "破谎质询",
+			"nodes": [
+				"node_03_confrontation"
+			]
+		}
+	},
 	"start_node": "node_01_intro"
 }

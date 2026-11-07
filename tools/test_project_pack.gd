@@ -13,7 +13,7 @@ func run_tests() -> void:
 	await get_tree().create_timer(0.1).timeout
 	
 	print("[1] 测试导出全案总工程 JSON (Master Project JSON)")
-	var export_path = ProjectSettings.globalize_path("res://test_master_pack.json")
+	var export_path = OS.get_user_data_dir().path_join("test_master_pack.json")
 	var exp_res = ProjectPackMgr.export_master_json(export_path)
 	print("    导出结果: ", exp_res.get("message", ""))
 	assert(exp_res.get("success", false), "导出应当成功")
@@ -66,6 +66,48 @@ func run_tests() -> void:
 	assert(not asset_tab.lbl_combined_prompt.text.is_empty(), "合成提示词应成功生成")
 	print("    ✅ 资产工坊界面装载通过！首项合成提示词预览: %s" % asset_tab.lbl_combined_prompt.text)
 	
+	print("[6] 测试 AI 资产工坊 4 级批量生成体系与新增差分/台词弹窗交互")
+	assert(asset_tab.btn_batch_generate != null, "Level 1 全局批量按钮应存在")
+	assert(asset_tab.btn_batch_entity_pending != null, "Level 2 实体批量按钮应存在")
+	
+	# 备份 manifest_items 防止测试临时项污染工程
+	var original_manifest_pack = asset_tab.manifest_items.duplicate(true)
+
+	# 测试新增立绘差分
+	var char_ent = asset_tab.entities_summary.get("characters", {}).get("char_shen_ce", {})
+	assert(char_ent != null, "角色沈策应存在于实体总结中")
+	var init_sp_cnt = char_ent.get("sprites", []).size()
+	asset_tab.open_add_sprite_dialog("char_shen_ce", char_ent)
+	asset_tab.txt_sprite_suffix.text = "严肃审视"
+	asset_tab._on_confirm_add_sprite()
+	assert(char_ent.get("sprites", []).size() == init_sp_cnt + 1, "新增立绘差分后数量应+1")
+	print("    ✅ 新增立绘差分弹窗流程验证通过，沈策差分总数: %d" % char_ent.get("sprites", []).size())
+
+	# 测试录入台词对白
+	var init_vc_cnt = char_ent.get("voices", []).size()
+	asset_tab.open_add_voice_dialog("char_shen_ce", char_ent)
+	asset_tab.txt_voice_input.text = "死者紧握的手心里，藏着一枚画廊的黄铜钥匙。"
+	asset_tab._on_confirm_add_voice()
+	assert(char_ent.get("voices", []).size() == init_vc_cnt + 1, "新增台词对白后数量应+1")
+	print("    ✅ 录入台词对白弹窗流程验证通过，沈策配音总数: %d" % char_ent.get("voices", []).size())
+
+	# 恢复原真数据
+	if not original_manifest_pack.is_empty():
+		asset_tab.manifest_items = original_manifest_pack
+		AIAssetMgr.save_manifest(asset_tab.manifest_items)
+
+	# 遍历 4 大类切换与工作台加载
+	asset_tab.switch_category("scene")
+	asset_tab.select_entity("scene_gallery")
+	print("    ✅ 场景工坊切换验证通过: ", asset_tab.lbl_entity_title.text)
+
+	asset_tab.switch_category("clue")
+	asset_tab.select_entity("clue_poison_cup")
+	print("    ✅ 证物工坊切换验证通过: ", asset_tab.lbl_entity_title.text)
+
+	asset_tab.switch_category("shared")
+	print("    ✅ 全局公共库切换验证通过: ", asset_tab.lbl_entity_title.text)
+
 	# 清理临时导出文件
 	DirAccess.remove_absolute(export_path)
 	

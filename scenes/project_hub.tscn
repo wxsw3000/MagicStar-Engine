@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://projecthub01"]
 
-[ext_resource type="Script" path="res://scenes/project_hub.gd" id="1_hub"]
+[ext_resource type="Script" uid="uid://d4cbyj2v14rcr" path="res://scenes/project_hub.gd" id="1_hub"]
 
-[node name="ProjectHub" type="Control"]
+[node name="ProjectHub" type="Control" unique_id=11156581]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -11,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hub")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=1478724317]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

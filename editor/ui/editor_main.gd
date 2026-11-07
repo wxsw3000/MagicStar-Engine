@@ -117,7 +117,7 @@ func setup_ui() -> void:
 	for i in range(tab_names.size()):
 		var t_btn = Button.new()
 		t_btn.text = tab_names[i]
-		t_btn.custom_minimum_size = Vector2(110, 38)
+		t_btn.custom_minimum_size = Vector2(96, 36)
 		t_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		t_btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		var tab_idx = i
@@ -127,28 +127,30 @@ func setup_ui() -> void:
 
 	# --- 右区：快捷操作与更多菜单 ---
 	var actions_hbox = HBoxContainer.new()
-	actions_hbox.add_theme_constant_override("separation", 10)
+	actions_hbox.add_theme_constant_override("separation", 8)
 	actions_hbox.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	tb_hbox.add_child(actions_hbox)
 
 	var btn_save = Button.new()
-	btn_save.text = "💾 保存 (Ctrl+S)"
-	btn_save.custom_minimum_size = Vector2(120, 36)
+	btn_save.text = "💾 保存"
+	btn_save.tooltip_text = "保存所有修改 (Ctrl+S)"
+	btn_save.custom_minimum_size = Vector2(90, 36)
 	style_secondary_btn(btn_save)
 	btn_save.pressed.connect(_on_save_all_pressed)
 	actions_hbox.add_child(btn_save)
 
 	var btn_playtest = Button.new()
-	btn_playtest.text = "▶ 运行试玩 (F5)"
-	btn_playtest.custom_minimum_size = Vector2(125, 36)
+	btn_playtest.text = "▶ 运行试玩"
+	btn_playtest.tooltip_text = "运行全篇试玩 (F5)"
+	btn_playtest.custom_minimum_size = Vector2(105, 36)
 	style_primary_btn(btn_playtest)
 	btn_playtest.pressed.connect(func(): run_playtest(""))
 	actions_hbox.add_child(btn_playtest)
 
 	# 更多下拉菜单 (收纳次要操作)
 	var menu_more = MenuButton.new()
-	menu_more.text = "更多操作 ▾"
-	menu_more.custom_minimum_size = Vector2(95, 36)
+	menu_more.text = "更多 ▾"
+	menu_more.custom_minimum_size = Vector2(75, 36)
 	style_secondary_btn(menu_more)
 	var popup = menu_more.get_popup()
 	popup.add_item("📥 导入总工程 JSON...", 1)

@@ -625,6 +625,9 @@ func get_active_project_title() -> String:
 # --- 统一资产注册表中心 (Unified Asset Registry & Resolver) ---
 # ========================================================
 
+func rebuild_asset_index() -> void:
+	rebuild_asset_registry()
+
 func rebuild_asset_registry() -> void:
 	_asset_index_by_id.clear()
 	_character_portraits.clear()
@@ -718,20 +721,23 @@ func _scan_sandbox_media_files() -> void:
 			dir.list_dir_begin()
 			var fn = dir.get_next()
 			while fn != "":
-				if not dir.current_is_dir() and fn.ends_with(".png"):
+				var ext = fn.get_extension().to_lower()
+				if not dir.current_is_dir() and ext in ["png", "jpg", "jpeg", "webp"]:
 					var base_no_ext = fn.get_basename()
 					var full_p = char_dir + fn
 					_asset_index_by_id[base_no_ext] = full_p
 					_character_portraits[base_no_ext] = full_p
-					# 模糊别名匹配：例如 char_char_assistant 匹配 char_assistant 与 水岛悠斗
+					# 智能别名与表情差分关联：
 					var chars = active_project_data.get("characters", {})
 					if chars is Dictionary:
 						for cid in chars:
-							if cid in base_no_ext:
-								_character_portraits[cid] = full_p
-								var cname = chars[cid].get("name", "")
-								if not cname.is_empty():
-									_character_portraits[cname] = full_p
+							if base_no_ext == cid or base_no_ext.begins_with(cid + "_") or base_no_ext.begins_with("char_" + cid + "_"):
+								var is_base = (base_no_ext == cid or base_no_ext == "char_" + cid or base_no_ext == cid + "_default" or base_no_ext == cid + "_normal")
+								if is_base or not _character_portraits.has(cid):
+									_character_portraits[cid] = full_p
+									var cname = chars[cid].get("name", "")
+									if not cname.is_empty():
+										_character_portraits[cname] = full_p
 				fn = dir.get_next()
 			dir.list_dir_end()
 
