@@ -4,6 +4,11 @@ import json
 import time
 import os
 import sys
+import argparse
+from PIL import Image
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ai_bridge import create_adaptive_face_mask, harmonize_and_blend
 
 def upload_image(base_url, image_path, filename):
     boundary = "----WebKitFormBoundary" + str(int(time.time() * 1000))
@@ -29,20 +34,16 @@ def upload_image(base_url, image_path, filename):
     with urllib.request.urlopen(req, timeout=15) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
-def build_qwen_edit_workflow(uploaded_ref_filename, prompt_text, neg_prompt_text, seed=123456, steps=20, cfg=3.5, resolution=768):
+def build_nunchaku_edit_workflow(uploaded_ref_filename, prompt_text, neg_prompt_text, seed=777, steps=20, cfg=3.5):
+    """
+    4060 8G 实测跑通的官方 Nunchaku SVDQuant INT4 工作流
+    """
     return {
-        "unet": {
-            "class_type": "UnetLoaderGGUF",
+        "dit": {
+            "class_type": "NunchakuQwenImageDiTLoader",
             "inputs": {
-                "unet_name": "qwen-image-2.1-Q4_K_M.gguf"
-            }
-        },
-        "cache": {
-            "class_type": "QwenImage21Cache",
-            "inputs": {
-                "model": ["unet", 0],
-                "device": "auto",
-                "dtype": "int8"
+                "model_name": "nunchaku_qwen_image_2511_balance_int4.safetensors",
+                "cpu_offload": "auto"
             }
         },
         "clip": {
@@ -55,7 +56,7 @@ def build_qwen_edit_workflow(uploaded_ref_filename, prompt_text, neg_prompt_text
         "vae": {
             "class_type": "VAELoader",
             "inputs": {
-                "vae_name": "qwen_image_2.1_vae_bf16.safetensors"
+                "vae_name": "qwen_image_vae.safetensors"
             }
         },
         "ref_img": {
@@ -64,29 +65,42 @@ def build_qwen_edit_workflow(uploaded_ref_filename, prompt_text, neg_prompt_text
                 "image": uploaded_ref_filename
             }
         },
-        "qwen_enc": {
-            "class_type": "TextEncodeQwenImage21",
+        "pos": {
+            "class_type": "TextEncodeQwenImageEdit",
             "inputs": {
                 "clip": ["clip", 0],
                 "prompt": prompt_text,
-                "negative_prompt": neg_prompt_text,
-                "resolution": resolution,
                 "vae": ["vae", 0],
-                "image_1": ["ref_img", 0]
+                "image": ["ref_img", 0]
+            }
+        },
+        "neg": {
+            "class_type": "CLIPTextEncode",
+            "inputs": {
+                "clip": ["clip", 0],
+                "text": neg_prompt_text
+            }
+        },
+        "latent": {
+            "class_type": "EmptyLatentImage",
+            "inputs": {
+                "width": 512,
+                "height": 768,
+                "batch_size": 1
             }
         },
         "sampler": {
             "class_type": "KSampler",
             "inputs": {
-                "model": ["cache", 0],
+                "model": ["dit", 0],
                 "seed": seed,
                 "steps": steps,
                 "cfg": cfg,
                 "sampler_name": "euler",
                 "scheduler": "simple",
-                "positive": ["qwen_enc", 0],
-                "negative": ["qwen_enc", 1],
-                "latent_image": ["qwen_enc", 2],
+                "positive": ["pos", 0],
+                "negative": ["neg", 0],
+                "latent_image": ["latent", 0],
                 "denoise": 1.0
             }
         },
@@ -101,19 +115,27 @@ def build_qwen_edit_workflow(uploaded_ref_filename, prompt_text, neg_prompt_text
             "class_type": "SaveImage",
             "inputs": {
                 "images": ["decode", 0],
-                "filename_prefix": "qwen21_diff_test"
+                "filename_prefix": "qwen_4060_shen_ce_diff"
             }
         }
     }
 
-def run_test():
-    base_url = "http://192.168.3.33:8188"
-    ref_image_path = "projects/case_gallery_rain/assets/images/characters/char_shen_ce.png"
-    out_dir = "samples"
-    os.makedirs(out_dir, exist_ok=True)
-    out_file = os.path.join(out_dir, "qwen_diff_test_smile.png")
+def main():
+    parser = argparse.ArgumentParser(description="RTX 4060 Qwen Diff Runner")
+    parser.add_argument("--url", type=str, default="http://192.168.1.57:8188", help="4060 ComfyUI base URL")
+    parser.add_argument("--expression", type=str, default="serious", choices=["serious", "smile", "shocked", "ponder", "smirk"], help="Expression key")
+    parser.add_argument("--seed", type=int, default=777, help="Seed")
+    parser.add_argument("--steps", type=int, default=20, help="Steps")
+    args = parser.parse_args()
 
-    print(f"[1/5] 检查 ComfyUI 连接: {base_url} ...")
+    base_url = args.url.rstrip("/")
+    ref_image_path = "E:/MagicStar-Engine/projects/case_gallery_rain/assets/images/characters/char_shen_ce.png"
+    out_dir = "E:/MagicStar-Engine/samples"
+    os.makedirs(out_dir, exist_ok=True)
+    raw_gen_path = os.path.join(out_dir, f"qwen_4060_raw_{args.expression}.png")
+    final_out_path = f"E:/MagicStar-Engine/projects/case_gallery_rain/assets/images/characters/char_shen_ce_{args.expression}.png"
+
+    print(f"[1/5] 连接 4060 ComfyUI: {base_url} ...")
     try:
         with urllib.request.urlopen(f"{base_url}/system_stats", timeout=5) as res:
             stats = json.loads(res.read().decode("utf-8"))
@@ -122,7 +144,7 @@ def run_test():
             print(f"      GPU: {gpu_name}")
             print(f"      当前空闲显存: {vram_free_mb:.1f} MB")
     except Exception as e:
-        print(f"❌ 无法连接到 ComfyUI: {e}")
+        print(f"❌ 无法连接到 4060 ComfyUI ({base_url}): {e}")
         return False
 
     print(f"[2/5] 上传参考立绘: {ref_image_path} ...")
@@ -134,24 +156,31 @@ def run_test():
         print(f"❌ 上传参考图失败: {e}")
         return False
 
-    prompt = (
-        "Keep the character's facial identity, facial structure, eye shape, hairstyle, "
-        "hair color, and clothing strictly identical to the reference image. "
-        "Modify only the facial expression: a gentle smiling happy expression, mouth slightly open, "
-        "subtle blush on cheeks, eyes curved with gentle warmth."
-    )
-    neg_prompt = "ugly, deformed, mutated, extra fingers, disfigured, blurry, low quality, changed clothes, changed hairstyle"
+    if args.expression == "serious":
+        prompt = (
+            "Change the character's facial expression in image 1 to: stern sharp detective inquiry, "
+            "intense piercing gaze, sharply angled eyebrows, firm straight set mouth, confident and intimidating. "
+            "Strictly maintain the handsome youthful anime aesthetic, smooth flawless anime skin, "
+            "identical 20-year-old facial structure and hairstyle as image 1, absolutely NO wrinkles, NO aging, NO nasolabial folds."
+        )
+        neg_prompt = (
+            "wrinkles, old, aged, elderly, mature face, nasolabial folds, laugh lines, eye bags, crows feet, deep lines, "
+            "sagging skin, realistic skin pores, ugly, decrepit, deformed, bad anatomy, bad hands, blurry, changed clothes, changed hairstyle"
+        )
+    else:
+        prompt = (
+            "Change the character's facial expression in image 1 to: gentle confident subtle smile, "
+            "warm relaxed eyes, lips curved slightly upwards, calm atmosphere. "
+            "Strictly maintain the handsome youthful anime aesthetic, smooth flawless anime skin, "
+            "identical 20-year-old facial structure and hairstyle as image 1, absolutely NO wrinkles, NO aging, NO nasolabial folds."
+        )
+        neg_prompt = (
+            "wrinkles, old, aged, elderly, mature face, nasolabial folds, laugh lines, eye bags, crows feet, deep lines, "
+            "sagging skin, realistic skin pores, ugly, decrepit, deformed, bad anatomy, blurry, changed clothes, changed hairstyle"
+        )
 
-    print(f"[3/5] 构建 Qwen-Image-2.1 指令差分工作流并提交 ...")
-    wf = build_qwen_edit_workflow(
-        uploaded_ref_filename=ref_remote_name,
-        prompt_text=prompt,
-        neg_prompt_text=neg_prompt,
-        seed=42,
-        steps=20,
-        cfg=3.5,
-        resolution=768
-    )
+    print(f"[3/5] 构建 4060 原生 Nunchaku 差分工作流并提交 (表情: {args.expression}) ...")
+    wf = build_nunchaku_edit_workflow(ref_remote_name, prompt, neg_prompt, seed=args.seed, steps=args.steps, cfg=3.5)
 
     req = urllib.request.Request(
         f"{base_url}/prompt",
@@ -163,15 +192,11 @@ def run_test():
             p_res = json.loads(res.read().decode("utf-8"))
             prompt_id = p_res.get("prompt_id")
             print(f"      任务已提交, Prompt ID: {prompt_id}")
-    except urllib.error.HTTPError as e:
-        err_body = e.read().decode("utf-8")
-        print(f"❌ 任务验证/提交失败 (HTTP {e.code}): {err_body}")
-        return False
     except Exception as e:
-        print(f"❌ 提交请求异常: {e}")
+        print(f"❌ 提交任务失败: {e}")
         return False
 
-    print(f"[4/5] 轮询任务执行状态并监控耗时与显存 (预计需要 40~90 秒) ...")
+    print(f"[4/5] 轮询任务执行状态并监控生成 (预计耗时 ~2 分半) ...")
     start_time = time.time()
     last_print = 0
 
@@ -180,7 +205,7 @@ def run_test():
         try:
             with urllib.request.urlopen(f"{base_url}/history/{prompt_id}", timeout=5) as res:
                 hist_data = json.loads(res.read().decode("utf-8"))
-        except Exception as e:
+        except Exception:
             time.sleep(2)
             continue
 
@@ -195,12 +220,10 @@ def run_test():
                     if len(m) > 1 and isinstance(m[1], dict) and "exception_message" in m[1]:
                         print(f"   Node: {m[1].get('node_type')} ({m[1].get('node_id')})")
                         print(f"   Error: {m[1].get('exception_message')}")
-                        for tb in m[1].get("traceback", []):
-                            print(f"   {tb.strip()}")
                 return False
 
             if status.get("completed", False) or item.get("outputs"):
-                print(f"\n✅ 渲染完成! 总耗时: {elapsed:.2f} 秒")
+                print(f"\n✅ 4060 渲染完成! 总耗时: {elapsed:.2f} 秒")
                 outputs = item.get("outputs", {})
                 save_out = outputs.get("save", {}).get("images", [])
                 if not save_out:
@@ -211,29 +234,32 @@ def run_test():
                 img_sub = img_info.get("subfolder", "")
                 img_type = img_info.get("type", "output")
 
-                print(f"[5/5] 下载生成的差分图像: {img_fn} ...")
+                print(f"[5/5] 下载 4060 生成的差分原始图像: {img_fn} ...")
                 query = urllib.parse.urlencode({"filename": img_fn, "subfolder": img_sub, "type": img_type})
                 view_url = f"{base_url}/view?{query}"
                 with urllib.request.urlopen(view_url, timeout=20) as img_res:
                     img_data = img_res.read()
-                    with open(out_file, "wb") as f:
+                    with open(raw_gen_path, "wb") as f:
                         f.write(img_data)
-                print(f"      已保存至本地: {out_file} (文件大小: {len(img_data)} 字节)")
+                print(f"      原始图已保存至: {raw_gen_path} ({len(img_data)} 字节)")
+
+                # 执行像素级余弦羽化与服装发型绝对锁死融合
+                print(f"      执行余弦非线性羽化与发型服装绝对锁死融合 ...")
+                base_pil = Image.open(ref_image_path).convert("RGBA")
+                raw_gen_pil = Image.open(raw_gen_path).convert("RGBA")
+                mask_pil = create_adaptive_face_mask(base_pil, prompt)
+                final_blended = harmonize_and_blend(raw_gen_pil, base_pil, mask_pil)
+                os.makedirs(os.path.dirname(final_out_path), exist_ok=True)
+                final_blended.save(final_out_path, "PNG")
+                print(f"      🎉 沈策【微笑】差分立绘成功交付: {final_out_path} ({os.path.getsize(final_out_path)} 字节)")
                 return True
 
         if elapsed - last_print >= 5:
             last_print = elapsed
-            # 尝试获取实时显存
-            try:
-                with urllib.request.urlopen(f"{base_url}/system_stats", timeout=3) as sres:
-                    s_data = json.loads(sres.read().decode("utf-8"))
-                    v_free = s_data.get("devices", [{}])[0].get("vram_free", 0) / (1024 * 1024)
-                    print(f"      [运行中... 已用时 {elapsed:.1f}s] 当前空闲显存: {v_free:.1f} MB")
-            except Exception:
-                print(f"      [运行中... 已用时 {elapsed:.1f}s]")
+            print(f"      [4060 渲染中... 已用时 {elapsed:.1f}s]")
 
         time.sleep(2)
 
 if __name__ == "__main__":
-    success = run_test()
+    success = main()
     sys.exit(0 if success else 1)

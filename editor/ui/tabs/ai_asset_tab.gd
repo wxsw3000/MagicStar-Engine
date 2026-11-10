@@ -4,7 +4,10 @@ class_name AIAssetTab
 extends Control
 
 const AIAssetMgr = preload("res://editor/core/ai_asset_manager.gd")
+const CharacterSheetMgr = preload("res://editor/core/character_sheet_manager.gd")
 const PoseEditorDialogClass = preload("res://editor/ui/pose_editor/pose_editor_dialog.gd")
+const CharacterSheetDialogClass = preload("res://editor/ui/dialogs/character_sheet_dialog.gd")
+const SpriteLightboxDialogClass = preload("res://editor/ui/dialogs/sprite_lightbox_dialog.gd")
 const PROGRESS_FILE_PATH = "user://temp_ai_progress.json"
 
 # 数据引用
@@ -110,6 +113,16 @@ var txt_edit_env_pass: LineEdit
 var dlg_import_file: FileDialog
 var import_target_item: Dictionary = {}
 var dlg_pose_editor: PoseEditorDialogClass
+
+# 模板与身高定标弹窗相关控件
+var btn_edit_templates: Button
+var dlg_edit_templates: ConfirmationDialog
+var txt_tpl_diff: TextEdit
+var chk_tpl_scale_enabled: CheckBox
+var txt_tpl_scale_tall: LineEdit
+var txt_tpl_scale_medium: LineEdit
+var txt_tpl_scale_petite: LineEdit
+var txt_tpl_base_char: TextEdit
 
 func _ready() -> void:
 	setup_audio_player()
@@ -404,6 +417,128 @@ func setup_dialogs() -> void:
 	dlg_pose_editor.pose_sprite_generated.connect(_on_pose_sprite_generated)
 	add_child(dlg_pose_editor)
 
+	# --- 世界观尺寸体系与生成底层母版编辑弹窗 ---
+	dlg_edit_templates = ConfirmationDialog.new()
+	dlg_edit_templates.title = "📐 世界观尺寸体系与生成底层母版配置"
+	dlg_edit_templates.min_size = Vector2(820, 620)
+	dlg_edit_templates.get_ok_button().text = "💾 保存并应用"
+	dlg_edit_templates.get_cancel_button().text = "取消"
+	
+	var scroll_tpl = ScrollContainer.new()
+	scroll_tpl.custom_minimum_size = Vector2(790, 530)
+	dlg_edit_templates.add_child(scroll_tpl)
+	
+	var vbox_tpl = VBoxContainer.new()
+	vbox_tpl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox_tpl.add_theme_constant_override("separation", 14)
+	scroll_tpl.add_child(vbox_tpl)
+	
+	# 顶部说明横幅
+	var banner_panel = PanelContainer.new()
+	var b_style = StyleBoxFlat.new()
+	b_style.bg_color = Color(0.12, 0.15, 0.22, 0.85)
+	b_style.set_corner_radius_all(6)
+	b_style.content_margin_left = 12
+	b_style.content_margin_top = 10
+	b_style.content_margin_right = 12
+	b_style.content_margin_bottom = 10
+	banner_panel.add_theme_stylebox_override("panel", b_style)
+	vbox_tpl.add_child(banner_panel)
+	
+	var lbl_banner = Label.new()
+	lbl_banner.text = "💡 尺寸与母版设计体系说明：\n1. 风格一致性：母版约束画风、抗衰老微表情与服饰，避免每个角色单人生成时画风漂移割裂；\n2. 世界观尺寸定标：AI 绘图默认会将单人画满画布（导致160cm与180cm等高）。本体系通过固定脚下基准线 + 顶部留白比例差（Headroom Margin），强制让180cm顶框、160cm留出24%留白，实现在同画布尺寸下不同角色的真实身高对比！"
+	lbl_banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_banner.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0, 0.95))
+	banner_panel.add_child(lbl_banner)
+	
+	# 分区 1：微表情差分指令母版
+	var lbl_sec1 = Label.new()
+	lbl_sec1.text = "🎭 1. 微表情差分指令母版 (Expression Diff Template)"
+	lbl_sec1.add_theme_font_size_override("font_size", 14)
+	vbox_tpl.add_child(lbl_sec1)
+	
+	var lbl_sec1_tip = Label.new()
+	lbl_sec1_tip.text = "Qwen-Image / Nunchaku 多模态生图时所使用的全中文指令母版。插槽变量：{expression} 微表情 | {name} 角色名 | {gender_word} 他/她 | {accessory_rule} 饰品与眼镜自适应规则"
+	lbl_sec1_tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_sec1_tip.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
+	vbox_tpl.add_child(lbl_sec1_tip)
+	
+	txt_tpl_diff = TextEdit.new()
+	txt_tpl_diff.custom_minimum_size = Vector2(760, 95)
+	txt_tpl_diff.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	vbox_tpl.add_child(txt_tpl_diff)
+	
+	# 分区 2：世界观身高尺寸比例定标
+	var lbl_sec2 = Label.new()
+	lbl_sec2.text = "🧍 2. 世界观角色身高尺寸体系定标 (Height Scale Anchors)"
+	lbl_sec2.add_theme_font_size_override("font_size", 14)
+	vbox_tpl.add_child(lbl_sec2)
+	
+	chk_tpl_scale_enabled = CheckBox.new()
+	chk_tpl_scale_enabled.text = "启用世界观身高比例定标规则 (按角色设定身高自动注入脚底基准线与头顶留白约束)"
+	vbox_tpl.add_child(chk_tpl_scale_enabled)
+	
+	var grid_scale = GridContainer.new()
+	grid_scale.columns = 2
+	grid_scale.add_theme_constant_override("h_separation", 10)
+	grid_scale.add_theme_constant_override("v_separation", 8)
+	vbox_tpl.add_child(grid_scale)
+	
+	var lbl_s_tall = Label.new()
+	lbl_s_tall.text = "🔴 高个挺拔 (180cm+):"
+	grid_scale.add_child(lbl_s_tall)
+	txt_tpl_scale_tall = LineEdit.new()
+	txt_tpl_scale_tall.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	txt_tpl_scale_tall.custom_minimum_size = Vector2(580, 32)
+	grid_scale.add_child(txt_tpl_scale_tall)
+	
+	var lbl_s_med = Label.new()
+	lbl_s_med.text = "🟡 标准中等 (166-179cm):"
+	grid_scale.add_child(lbl_s_med)
+	txt_tpl_scale_medium = LineEdit.new()
+	txt_tpl_scale_medium.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	txt_tpl_scale_medium.custom_minimum_size = Vector2(580, 32)
+	grid_scale.add_child(txt_tpl_scale_medium)
+	
+	var lbl_s_pet = Label.new()
+	lbl_s_pet.text = "🟢 娇小短身 (150-165cm):"
+	grid_scale.add_child(lbl_s_pet)
+	txt_tpl_scale_petite = LineEdit.new()
+	txt_tpl_scale_petite.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	txt_tpl_scale_petite.custom_minimum_size = Vector2(580, 32)
+	grid_scale.add_child(txt_tpl_scale_petite)
+	
+	# 分区 3：全角色初始基准立绘母版
+	var lbl_sec3 = Label.new()
+	lbl_sec3.text = "🎨 3. 初始角色基准立绘通用母版 (Base Character Template)"
+	lbl_sec3.add_theme_font_size_override("font_size", 14)
+	vbox_tpl.add_child(lbl_sec3)
+	
+	var lbl_sec3_tip = Label.new()
+	lbl_sec3_tip.text = "新建或从零生成角色基准图时的骨架母版。插槽变量：{画质}, {画风}, {头身比}, {性别}, {年龄}, {身高}, {体型}, {脸型眼神}, {发型发色}, {肤色}, {服装风格}, {服装配色}, {服装材质}, {气质}, {表情}, {构图机位}, {光影氛围}, {尺寸定标}"
+	lbl_sec3_tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_sec3_tip.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
+	vbox_tpl.add_child(lbl_sec3_tip)
+	
+	txt_tpl_base_char = TextEdit.new()
+	txt_tpl_base_char.custom_minimum_size = Vector2(760, 80)
+	txt_tpl_base_char.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	vbox_tpl.add_child(txt_tpl_base_char)
+	
+	# 底部按钮条
+	var row_tpl_bottom = HBoxContainer.new()
+	row_tpl_bottom.add_theme_constant_override("separation", 12)
+	vbox_tpl.add_child(row_tpl_bottom)
+	
+	var btn_reset_tpl = Button.new()
+	btn_reset_tpl.text = "🔄 恢复为引擎默认模板与定标规则"
+	style_button(btn_reset_tpl, "secondary")
+	btn_reset_tpl.pressed.connect(_reset_templates_to_default)
+	row_tpl_bottom.add_child(btn_reset_tpl)
+	
+	dlg_edit_templates.confirmed.connect(_on_confirm_edit_templates)
+	add_child(dlg_edit_templates)
+
 func style_button(btn: Button, style_type: String = "primary") -> void:
 	if btn == null:
 		return
@@ -566,16 +701,19 @@ func setup_ui() -> void:
 	row1.add_child(lbl_conn_status)
 
 	var lbl_ckpt = Label.new()
-	lbl_ckpt.text = "📦 底模:"
+	lbl_ckpt.text = "⚙️ 生成方案:"
 	row1.add_child(lbl_ckpt)
 
 	opt_checkpoint = OptionButton.new()
-	opt_checkpoint.custom_minimum_size = Vector2(170, 34)
+	opt_checkpoint.custom_minimum_size = Vector2(240, 34)
 	opt_checkpoint.item_selected.connect(func(idx):
 		var ck = opt_checkpoint.get_item_metadata(idx)
 		if ck:
 			txt_checkpoint.text = ck
 			ai_settings["checkpoint"] = ck
+			_update_current_env_checkpoint(ck)
+			AIAssetMgr.save_ai_settings(ai_settings)
+			lbl_gen_status.text = "已选择生成方案: " + opt_checkpoint.get_item_text(idx)
 	)
 	row1.add_child(opt_checkpoint)
 
@@ -625,6 +763,14 @@ func setup_ui() -> void:
 	txt_global_neg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	txt_global_neg.custom_minimum_size = Vector2(140, 34)
 	row2.add_child(txt_global_neg)
+
+	btn_edit_templates = Button.new()
+	btn_edit_templates.text = "📐 尺寸与生成模板"
+	btn_edit_templates.custom_minimum_size = Vector2(140, 34)
+	btn_edit_templates.tooltip_text = "查看与编辑底层生成模板、微表情差分母版及角色身高尺寸体系定标规则"
+	style_button(btn_edit_templates, "action")
+	btn_edit_templates.pressed.connect(open_edit_templates_dialog)
+	row2.add_child(btn_edit_templates)
 
 	opt_style_preset.item_selected.connect(func(idx):
 		var p_key = opt_style_preset.get_item_metadata(idx)
@@ -1071,7 +1217,16 @@ func render_character_workbench(cid: String, ent: Dictionary) -> void:
 	btn_batch_entity_pending.visible = true
 
 	# 1. 角色基础形象与声线设定卡片
-	var base_panel = create_section_card("🎭 基础设定与声线配置 (底模继承)")
+	var btn_char_sheet = Button.new()
+	btn_char_sheet.text = "📋 角色属性卡 (Character Sheet)"
+	btn_char_sheet.custom_minimum_size = Vector2(220, 32)
+	btn_char_sheet.tooltip_text = "打开工业化四维角色属性卡：人设叙事 → AI生图 → 表情差分 → 配音声线一键拼装"
+	style_button(btn_char_sheet, "create")
+	btn_char_sheet.pressed.connect(func():
+		open_character_sheet_dialog(cid, ent)
+	)
+
+	var base_panel = create_section_card("🎭 基础设定与声线配置 (底模继承)", [btn_char_sheet])
 	vbox_entity_content.add_child(base_panel)
 	var base_vbox = get_card_vbox(base_panel)
 
@@ -1120,6 +1275,10 @@ func render_character_workbench(cid: String, ent: Dictionary) -> void:
 	)
 	voice_row.add_child(btn_test_voice)
 
+	# 1.5 概念档案：全身三视图母本 (Character Turnaround Sheet · 16:9 物理锚点)
+	var turnaround_card = create_turnaround_card(cid, ent)
+	vbox_entity_content.add_child(turnaround_card)
+
 	# 角色资产工坊内部防遮挡子视图切换器 (立绘相册 vs 台词配音池)
 	var subtab_nav = HBoxContainer.new()
 	subtab_nav.add_theme_constant_override("separation", 10)
@@ -1166,9 +1325,20 @@ func render_character_workbench(cid: String, ent: Dictionary) -> void:
 		_on_batch_character_sprites_pending(cid, ent)
 	)
 
+	var btn_lightbox_all = Button.new()
+	btn_lightbox_all.text = "🖼️ 大图画廊检视 (左右键轮播)"
+	btn_lightbox_all.custom_minimum_size = Vector2(195, 32)
+	btn_lightbox_all.tooltip_text = "打开高清大图画廊浏览模态框，支持键盘左右方向键连续轮播检视全部立绘"
+	style_button(btn_lightbox_all, "action")
+	btn_lightbox_all.pressed.connect(func():
+		var sps = ent.get("sprites", [])
+		if not sps.is_empty():
+			open_sprite_lightbox(sps[0])
+	)
+
 	var sprites_panel = create_section_card(
 		"🎨 表情立绘差分相册 (%d 项)" % ent.get("sprites", []).size(),
-		[btn_pose_editor, btn_add_sprite, btn_batch_sprites]
+		[btn_lightbox_all, btn_pose_editor, btn_add_sprite, btn_batch_sprites]
 	)
 	vbox_entity_content.add_child(sprites_panel)
 	var sprites_vbox = get_card_vbox(sprites_panel)
@@ -1666,6 +1836,581 @@ func get_card_vbox(panel: PanelContainer) -> VBoxContainer:
 		return panel.get_meta("vbox")
 	return null
 
+func create_turnaround_card(cid: String, ent: Dictionary) -> PanelContainer:
+	var clean_cid = cid.substr(5) if cid.begins_with("char_") else cid
+	var pdir = _get_project_dir()
+	var cname = ent.get("name", cid)
+	var sheet = ent.get("character_sheet", {})
+	if sheet.is_empty():
+		sheet = CharacterSheetMgr.create_default_sheet(cname, "男", 24)
+
+	# 1. 组装三视图单项 (正视 front, 侧视 side, 背视 back)
+	var view_keys = ["front", "side", "back"]
+	var view_titles = ["👤 正视主立绘 (形象基准)", "📐 侧视观察立绘 (90°侧面)", "🔙 背视远景立绘 (背面发型服饰)"]
+	var view_sub_tags = ["🌟 形象基准锚点", "侧脸鼻梁轮廓", "后脑发型服饰"]
+	var view_items: Dictionary = {}
+
+	for i in range(view_keys.size()):
+		var vk = view_keys[i]
+		var v_id = "char_%s_%s" % [clean_cid, vk]
+		var v_rel = pdir + "assets/images/characters/char_%s_%s.png" % [clean_cid, vk]
+		var v_abs = ProjectSettings.globalize_path(v_rel)
+		var v_exists = FileAccess.file_exists(v_abs)
+		
+		var it_found = null
+		for it in manifest_items:
+			if it is Dictionary and it.get("id", "") == v_id:
+				it_found = it
+				break
+		if it_found == null:
+			it_found = {
+				"id": v_id,
+				"name": "%s·%s" % [cname, view_titles[i]],
+				"type": "turnaround",
+				"entity_type": "character",
+				"entity_id": cid,
+				"character_id": cid,
+				"sub_type": "turnaround",
+				"view_type": vk,
+				"prompt": CharacterSheetMgr.assemble_view_prompt(sheet, vk),
+				"negative_prompt": CharacterSheetMgr.get_three_view_negative_prompt(sheet, vk),
+				"local_path": v_rel,
+				"width": 512,
+				"height": 768,
+				"status": "ready" if v_exists else "pending",
+				"is_base": (vk == "front"),
+				"generation_mode": "base",
+				"transparent": 1
+			}
+			manifest_items.append(it_found)
+		else:
+			if v_exists:
+				it_found["status"] = "ready"
+			it_found["view_type"] = vk
+			it_found["width"] = 512
+			it_found["height"] = 768
+			it_found["prompt"] = CharacterSheetMgr.assemble_view_prompt(sheet, vk)
+			it_found["negative_prompt"] = CharacterSheetMgr.get_three_view_negative_prompt(sheet, vk)
+			it_found["transparent"] = 1
+		view_items[vk] = it_found
+
+	# 2. 16:9 全景概念母本 (可选单张全景)
+	var t_id = "char_%s_turnaround" % clean_cid
+	var t_rel = pdir + "assets/images/characters/char_%s_turnaround.png" % clean_cid
+	var t_abs = ProjectSettings.globalize_path(t_rel)
+	var t_exists = FileAccess.file_exists(t_abs)
+	var t_item = null
+	for it in manifest_items:
+		if it is Dictionary and it.get("id", "") == t_id:
+			t_item = it
+			break
+	if t_item == null:
+		t_item = {
+			"id": t_id,
+			"name": "%s 全景三视图 (Turnaround · 16:9)" % cname,
+			"type": "turnaround",
+			"entity_type": "character",
+			"entity_id": cid,
+			"character_id": cid,
+			"sub_type": "turnaround",
+			"view_type": "panorama",
+			"prompt": CharacterSheetMgr.assemble_three_view_prompt(sheet),
+			"negative_prompt": CharacterSheetMgr.get_three_view_negative_prompt(sheet),
+			"local_path": t_rel,
+			"width": 1024,
+			"height": 576,
+			"status": "ready" if t_exists else "pending"
+		}
+		manifest_items.append(t_item)
+	else:
+		if t_exists:
+			t_item["status"] = "ready"
+	ent["turnaround"] = t_item
+
+	# --- 头部操作区 (无冗余，仅批量三视图与属性卡) ---
+	var btn_batch_3v = Button.new()
+	btn_batch_3v.text = "⚡ 一键生成三视图 (3张)"
+	btn_batch_3v.custom_minimum_size = Vector2(175, 32)
+	btn_batch_3v.tooltip_text = "一键依次生成正面、侧面、背面三张高精独立立绘 (各 512×768，二次元商业AVG画质)"
+	style_button(btn_batch_3v, "action")
+	btn_batch_3v.pressed.connect(func():
+		batch_generate_three_views(cid, ent)
+	)
+
+	var btn_sheet = Button.new()
+	btn_sheet.text = "📋 编辑角色属性卡..."
+	btn_sheet.custom_minimum_size = Vector2(145, 32)
+	btn_sheet.tooltip_text = "打开四维角色属性卡编辑五官、发型、服饰与人设"
+	style_button(btn_sheet, "secondary")
+	btn_sheet.pressed.connect(func():
+		open_character_sheet_dialog(cid, ent)
+	)
+
+	var btn_open_dir = Button.new()
+	btn_open_dir.text = "📂 浏览素材目录"
+	btn_open_dir.custom_minimum_size = Vector2(130, 32)
+	btn_open_dir.tooltip_text = "在操作系统资源管理器中打开当前角色的立绘素材存放目录"
+	style_button(btn_open_dir, "secondary")
+	btn_open_dir.pressed.connect(func():
+		open_file_in_explorer(pdir + "assets/images/characters/")
+	)
+
+	var card = create_section_card(
+		"📐 角色形象三视图基准 (3-View Anchor: 正面 · 侧面 · 背面)",
+		[btn_sheet, btn_open_dir, btn_batch_3v]
+	)
+	var vbox = get_card_vbox(card)
+
+	var desc_lbl = Label.new()
+	desc_lbl.text = "💡 三视图分别确立角色的正面、侧面与背面（各 512×768 商业二次元插画）。其中【正视图】生成后将自动确立为本角色的唯一【🌟 形象基准 (Base)】，后续所有表情差分都将以此为绝对锚点进行五官重绘！"
+	desc_lbl.modulate = Color(0.75, 0.86, 0.98, 0.9)
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(desc_lbl)
+
+	# --- 核心：三列独立分视图卡片展示 (正面 / 侧面 / 背面) ---
+	var views_grid = HBoxContainer.new()
+	views_grid.add_theme_constant_override("separation", 14)
+	vbox.add_child(views_grid)
+
+	for i in range(view_keys.size()):
+		var vk = view_keys[i]
+		var item = view_items[vk]
+		var is_ready = (item.get("status", "") == "ready")
+		var is_front = (vk == "front")
+
+		var v_panel = PanelContainer.new()
+		v_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		v_panel.custom_minimum_size = Vector2(210, 360)
+		var vp_style = StyleBoxFlat.new()
+		vp_style.bg_color = Color(0.04, 0.05, 0.08, 0.95)
+		vp_style.set_border_width_all(2 if (is_front and is_ready) else 1)
+		vp_style.border_color = Color(0.90, 0.75, 0.35, 0.9) if (is_front and is_ready) else (Color(0.25, 0.45, 0.70, 0.7) if is_ready else Color(0.25, 0.28, 0.35, 0.5))
+		vp_style.set_corner_radius_all(6)
+		v_panel.add_theme_stylebox_override("panel", vp_style)
+		views_grid.add_child(v_panel)
+
+		var v_margin = MarginContainer.new()
+		v_margin.add_theme_constant_override("margin_left", 8)
+		v_margin.add_theme_constant_override("margin_top", 8)
+		v_margin.add_theme_constant_override("margin_right", 8)
+		v_margin.add_theme_constant_override("margin_bottom", 8)
+		v_panel.add_child(v_margin)
+
+		var v_vbox = VBoxContainer.new()
+		v_vbox.add_theme_constant_override("separation", 6)
+		v_margin.add_child(v_vbox)
+
+		# 标题栏
+		var title_row = HBoxContainer.new()
+		v_vbox.add_child(title_row)
+
+		var title_lbl = Label.new()
+		title_lbl.text = view_titles[i]
+		title_lbl.add_theme_font_size_override("font_size", 12)
+		title_lbl.modulate = Color(1.0, 0.85, 0.35) if is_front else Color(0.85, 0.92, 1.0)
+		title_row.add_child(title_lbl)
+
+		# 缩略图视窗 (2:3 纵横比)
+		var thumb_frame = PanelContainer.new()
+		thumb_frame.custom_minimum_size = Vector2(190, 190)
+		thumb_frame.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		var tf_style = StyleBoxFlat.new()
+		tf_style.bg_color = Color(0.02, 0.03, 0.05, 1.0)
+		tf_style.set_corner_radius_all(4)
+		thumb_frame.add_theme_stylebox_override("panel", tf_style)
+		thumb_frame.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		thumb_frame.tooltip_text = "点击全屏放大检视高清原图 (支持画廊连续轮播)"
+		thumb_frame.gui_input.connect(func(ev: InputEvent):
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				open_sprite_lightbox(item)
+		)
+		v_vbox.add_child(thumb_frame)
+
+		var img_rect = TextureRect.new()
+		img_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		img_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		img_rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		thumb_frame.add_child(img_rect)
+
+		var abs_v_path = ProjectSettings.globalize_path(item.get("local_path", ""))
+		if FileAccess.file_exists(abs_v_path):
+			var im = Image.load_from_file(abs_v_path)
+			if im and not im.is_empty():
+				img_rect.texture = ImageTexture.create_from_image(im)
+		else:
+			var ph = VBoxContainer.new()
+			ph.alignment = BoxContainer.ALIGNMENT_CENTER
+			ph.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			ph.add_theme_constant_override("separation", 4)
+			var phi = Label.new()
+			phi.text = "👤" if is_front else ("📐" if vk == "side" else "🔙")
+			phi.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			phi.add_theme_font_size_override("font_size", 28)
+			ph.add_child(phi)
+			var phl = Label.new()
+			phl.text = "⏳ 待生成"
+			phl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			phl.modulate = Color(0.5, 0.55, 0.65)
+			ph.add_child(phl)
+			thumb_frame.add_child(ph)
+
+		# 状态标签 (识别是否已完成透明抠图)
+		var is_alpha = false
+		if is_ready:
+			var im = Image.load_from_file(abs_v_path)
+			if im:
+				is_alpha = (im.detect_alpha() != Image.ALPHA_NONE)
+		var st_lbl = Label.new()
+		st_lbl.text = ("🟢 512×768 (透明免抠)" if is_alpha else "🟢 512×768 (纯色背景)") if is_ready else "⚪ 待生成 (512×768 透明立绘)"
+		st_lbl.add_theme_font_size_override("font_size", 10)
+		st_lbl.modulate = Color(0.4, 0.9, 0.5) if is_ready else Color(0.65, 0.7, 0.75)
+		v_vbox.add_child(st_lbl)
+
+		# 提示词简要展示
+		var txt_p = TextEdit.new()
+		txt_p.text = item.get("prompt", "")
+		txt_p.custom_minimum_size = Vector2(0, 42)
+		txt_p.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+		txt_p.add_theme_font_size_override("font_size", 10)
+		txt_p.text_changed.connect(func():
+			item["prompt"] = txt_p.text.strip_edges()
+			AIAssetMgr.save_manifest(manifest_items)
+		)
+		v_vbox.add_child(txt_p)
+
+		# 专属操作行 (生成/重绘 + 一键透明去背 + 本地文件定位 + 高清画廊检视)
+		var act_row = HBoxContainer.new()
+		act_row.add_theme_constant_override("separation", 6)
+		v_vbox.add_child(act_row)
+
+		var btn_gen_view = Button.new()
+		btn_gen_view.text = ("🎨 生成" + ("正视图" if is_front else ("侧视图" if vk == "side" else "背视图"))) if not is_ready else ("⚡ 重绘" + ("正视图" if is_front else ("侧视图" if vk == "side" else "背视图")))
+		btn_gen_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn_gen_view.custom_minimum_size = Vector2(0, 32)
+		style_button(btn_gen_view, "create" if not is_ready else "action")
+		btn_gen_view.pressed.connect(func():
+			start_single_generation(item)
+		)
+		act_row.add_child(btn_gen_view)
+
+		var btn_rembg_view = Button.new()
+		btn_rembg_view.text = "✂️"
+		btn_rembg_view.tooltip_text = "一键执行 u2net 深度透明抠图与发丝羽化"
+		btn_rembg_view.custom_minimum_size = Vector2(34, 32)
+		style_button(btn_rembg_view, "secondary")
+		btn_rembg_view.pressed.connect(func():
+			var p = item.get("local_path", "")
+			lbl_gen_status.text = "⏳ 正在对「%s」执行深度透明去背..." % view_titles[i]
+			var res = AIAssetMgr.remove_image_background(p)
+			if res.get("success", false):
+				lbl_gen_status.text = "✅「%s」已成功去除背景并转为透明通道！" % view_titles[i]
+				select_entity(selected_entity_id)
+			else:
+				lbl_gen_status.text = "❌ 去背失败: " + str(res.get("error", "未知错误"))
+		)
+		act_row.add_child(btn_rembg_view)
+
+		var btn_loc_view = Button.new()
+		btn_loc_view.text = "📂"
+		btn_loc_view.tooltip_text = "在系统资源管理器中定位并选中该立绘本地文件"
+		btn_loc_view.custom_minimum_size = Vector2(34, 32)
+		style_button(btn_loc_view, "secondary")
+		btn_loc_view.pressed.connect(func():
+			open_file_in_explorer(item.get("local_path", ""))
+		)
+		act_row.add_child(btn_loc_view)
+
+		var btn_zoom_view = Button.new()
+		btn_zoom_view.text = "🔍"
+		btn_zoom_view.tooltip_text = "高清画廊放大检视 (支持键盘 ← / → 连续轮播浏览)"
+		btn_zoom_view.custom_minimum_size = Vector2(34, 32)
+		style_button(btn_zoom_view, "secondary")
+		btn_zoom_view.pressed.connect(func():
+			open_sprite_lightbox(item)
+		)
+		act_row.add_child(btn_zoom_view)
+
+	# --- 底部可选扩展：16:9 全景概念母本展示与裁切工具 ---
+	var pano_panel = PanelContainer.new()
+	var pp_style = StyleBoxFlat.new()
+	pp_style.bg_color = Color(0.06, 0.08, 0.12, 0.9)
+	pp_style.set_border_width_all(1)
+	pp_style.border_color = Color(0.2, 0.25, 0.35, 0.4)
+	pp_style.set_corner_radius_all(6)
+	pp_style.content_margin_left = 12
+	pp_style.content_margin_top = 8
+	pp_style.content_margin_right = 12
+	pp_style.content_margin_bottom = 8
+	pano_panel.add_theme_stylebox_override("panel", pp_style)
+	vbox.add_child(pano_panel)
+
+	var pano_hbox = HBoxContainer.new()
+	pano_hbox.add_theme_constant_override("separation", 12)
+	pano_panel.add_child(pano_hbox)
+
+	var pano_info = Label.new()
+	pano_info.text = "📐 16:9 全景三视图概念母本 (1024×576): " + ("🟢 已就绪" if t_exists else "⚪ 未生成")
+	pano_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pano_info.modulate = Color(0.7, 0.8, 0.9)
+	pano_hbox.add_child(pano_info)
+
+	var btn_pano_gen = Button.new()
+	btn_pano_gen.text = "🎨 生成全景图" if not t_exists else "⚡ 重绘全景"
+	btn_pano_gen.custom_minimum_size = Vector2(130, 28)
+	style_button(btn_pano_gen, "secondary")
+	btn_pano_gen.pressed.connect(func():
+		generate_character_turnaround(cid, ent, t_item)
+	)
+	pano_hbox.add_child(btn_pano_gen)
+
+	if t_exists:
+		var btn_pano_loc = Button.new()
+		btn_pano_loc.text = "📂 定位"
+		btn_pano_loc.custom_minimum_size = Vector2(75, 28)
+		btn_pano_loc.tooltip_text = "在系统资源管理器中定位并选中全景图文件"
+		style_button(btn_pano_loc, "secondary")
+		btn_pano_loc.pressed.connect(func():
+			open_file_in_explorer(t_item.get("local_path", ""))
+		)
+		pano_hbox.add_child(btn_pano_loc)
+
+		var btn_pano_zoom = Button.new()
+		btn_pano_zoom.text = "🔍 检视"
+		btn_pano_zoom.custom_minimum_size = Vector2(75, 28)
+		style_button(btn_pano_zoom, "secondary")
+		btn_pano_zoom.pressed.connect(func():
+			open_sprite_lightbox(t_item)
+		)
+		pano_hbox.add_child(btn_pano_zoom)
+
+		var btn_pano_extract = Button.new()
+		btn_pano_extract.text = "✂️ 从全景裁切正视半身(Plan A)"
+		btn_pano_extract.tooltip_text = "从16:9全景图中智能识别并裁切出正视半身(512×768)覆盖为形象基准"
+		btn_pano_extract.custom_minimum_size = Vector2(190, 28)
+		style_button(btn_pano_extract, "primary")
+		btn_pano_extract.pressed.connect(func():
+			extract_and_apply_turnaround_base(cid, ent, t_item)
+		)
+		pano_hbox.add_child(btn_pano_extract)
+
+	return card
+
+# --- 一键批量生成正面、侧面、背面三视图 ---
+func batch_generate_three_views(cid: String, ent: Dictionary) -> void:
+	if is_generating:
+		lbl_gen_status.text = "⚠️ 当前已有生成任务正在进行中，请稍候！"
+		return
+
+	var cname = ent.get("name", cid)
+	var clean_cid = cid.substr(5) if cid.begins_with("char_") else cid
+	var pdir = _get_project_dir()
+	var sheet = ent.get("character_sheet", {})
+	if sheet.is_empty():
+		sheet = CharacterSheetMgr.create_default_sheet(cname, "男", 24)
+
+	var view_keys = ["front", "side", "back"]
+	var view_titles = ["正视主视图 (形象基准)", "侧视观察图", "背视远景图"]
+	var items_to_gen: Array = []
+
+	for i in range(view_keys.size()):
+		var vk = view_keys[i]
+		var v_id = "char_%s_%s" % [clean_cid, vk]
+		var v_item = null
+		for it in manifest_items:
+			if it is Dictionary and it.get("id", "") == v_id:
+				v_item = it
+				break
+		if v_item == null:
+			v_item = {
+				"id": v_id,
+				"name": "%s·%s" % [cname, view_titles[i]],
+				"type": "turnaround",
+				"entity_type": "character",
+				"entity_id": cid,
+				"character_id": cid,
+				"sub_type": "turnaround",
+				"view_type": vk,
+				"prompt": CharacterSheetMgr.assemble_view_prompt(sheet, vk),
+				"negative_prompt": CharacterSheetMgr.get_three_view_negative_prompt(sheet, vk),
+				"local_path": pdir + "assets/images/characters/char_%s_%s.png" % [clean_cid, vk],
+				"width": 512,
+				"height": 768,
+				"status": "pending",
+				"is_base": (vk == "front"),
+				"generation_mode": "base",
+				"transparent": 1
+			}
+			manifest_items.append(v_item)
+		else:
+			v_item["prompt"] = CharacterSheetMgr.assemble_view_prompt(sheet, vk)
+			v_item["negative_prompt"] = CharacterSheetMgr.get_three_view_negative_prompt(sheet, vk)
+			v_item["transparent"] = 1
+			v_item["status"] = "pending"
+		items_to_gen.append(v_item)
+
+	AIAssetMgr.save_manifest(manifest_items)
+	execute_batch_generation(items_to_gen, "%s 形象三视图" % cname)
+
+# --- 将正视图确立为角色唯一形象基准 (Base) 并同步更新 ---
+func apply_front_view_as_base(cid: String, ent: Dictionary, front_item: Dictionary) -> void:
+	var clean_cid = cid.substr(5) if cid.begins_with("char_") else cid
+	var pdir = _get_project_dir()
+	var front_rel = front_item.get("local_path", "")
+	var front_abs = ProjectSettings.globalize_path(front_rel)
+	
+	if not FileAccess.file_exists(front_abs):
+		return
+	
+	var base_rel = pdir + "assets/images/characters/char_%s.png" % clean_cid
+	var base_abs = ProjectSettings.globalize_path(base_rel)
+	if front_abs != base_abs:
+		DirAccess.copy_absolute(front_abs, base_abs)
+	
+	front_item["is_base"] = true
+	front_item["generation_mode"] = "base"
+	front_item["base_sprite_path"] = ""
+	
+	for it in manifest_items:
+		if it is Dictionary and (it.get("character_id", "") == cid or it.get("entity_id", "") == cid):
+			if it.get("sub_type", "") == "sprite" or it.get("type", "") == "character":
+				if it.get("id", "") == front_item.get("id", "") or it.get("id", "") == "char_" + clean_cid:
+					it["is_base"] = true
+					it["base_sprite_path"] = ""
+					it["generation_mode"] = "base"
+				else:
+					it["is_base"] = false
+					it["base_sprite_path"] = base_rel
+					if it.get("generation_mode", "") != "pose":
+						it["generation_mode"] = "expression"
+	
+	var dm = _get_data_manager()
+	if dm and dm.characters.has(cid):
+		dm.characters[cid]["image"] = base_rel
+		dm.characters[cid]["character_image"] = base_rel
+	var pctx_obj = _get_project_context()
+	if pctx_obj and pctx_obj.active_project_data.has("characters") and pctx_obj.active_project_data["characters"].has(cid):
+		pctx_obj.active_project_data["characters"][cid]["image"] = base_rel
+		pctx_obj.active_project_data["characters"][cid]["character_image"] = base_rel
+	
+	AIAssetMgr.save_manifest(manifest_items)
+
+func generate_character_turnaround(cid: String, ent: Dictionary, t_item: Dictionary) -> void:
+	if is_generating:
+		lbl_gen_status.text = "⚠️ 当前已有生成任务正在进行中，请稍候！"
+		return
+
+	# 确保在清单中登记
+	var found = false
+	for it in manifest_items:
+		if it is Dictionary and it.get("id", "") == t_item.get("id", ""):
+			found = true
+			it["prompt"] = t_item.get("prompt", "")
+			it["negative_prompt"] = t_item.get("negative_prompt", "")
+			it["status"] = "pending"
+			break
+	if not found:
+		manifest_items.append(t_item)
+	
+	AIAssetMgr.save_manifest(manifest_items)
+	start_single_generation(t_item)
+
+# --- 从全身三视图中一键提取正视半身并绑定为角色形象基准 (Plan A 黄金工作流) ---
+func extract_and_apply_turnaround_base(cid: String, ent: Dictionary, t_item: Dictionary) -> void:
+	var cname = ent.get("name", cid)
+	var clean_cid = cid.substr(5) if cid.begins_with("char_") else cid
+	var t_path = t_item.get("local_path", "")
+	if t_path.is_empty():
+		var pdir = _get_project_dir()
+		t_path = pdir + "assets/images/characters/char_%s_turnaround.png" % clean_cid
+	
+	var abs_t_path = ProjectSettings.globalize_path(t_path)
+	if not FileAccess.file_exists(abs_t_path):
+		lbl_gen_status.text = "⚠️ 提取失败：角色「%s」的全身三视图文件尚不存在，请先点击生成全景图！" % cname
+		return
+
+	var pdir = _get_project_dir()
+	
+	# 优先寻找既有的基准 item
+	var base_item: Dictionary = {}
+	for it in manifest_items:
+		if it is Dictionary and (it.get("character_id", "") == cid or it.get("entity_id", "") == cid):
+			if it.get("is_base", false) or it.get("id", "") == cid or it.get("id", "") == "char_" + clean_cid or it.get("name", "").contains("基准") or it.get("name", "").contains("基础"):
+				base_item = it
+				break
+	
+	var base_rel = ""
+	if not base_item.is_empty() and not base_item.get("local_path", "").is_empty():
+		base_rel = base_item.get("local_path")
+	else:
+		base_rel = pdir + "assets/images/characters/char_%s.png" % clean_cid
+
+	print("[AIAssetTab] 开始从三视图自动提取正视半身: %s -> %s" % [t_path, base_rel])
+	lbl_gen_status.text = "⏳ 正在从「%s」全景三视图中识别并提取正视半身..." % cname
+
+	var res = AIAssetMgr.extract_front_view_base_from_turnaround(t_path, base_rel)
+	if not res.get("success", false):
+		lbl_gen_status.text = "❌ 提取失败: " + str(res.get("error", "未知错误"))
+		return
+
+	# 更新或注册清单中的 Base Item
+	var base_id = "char_" + clean_cid
+	if base_item.is_empty():
+		base_item = {
+			"id": base_id,
+			"name": "%s 半身立绘 (三视图提取·形象基准)" % cname,
+			"type": "character",
+			"entity_type": "character",
+			"entity_id": cid,
+			"character_id": cid,
+			"sub_type": "sprite",
+			"prompt": "%s, 基础形象, 上半身正视立绘" % cname,
+			"local_path": base_rel,
+			"width": 512,
+			"height": 768,
+			"status": "ready",
+			"is_base": true,
+			"generation_mode": "base",
+			"base_sprite_path": ""
+		}
+		manifest_items.append(base_item)
+	else:
+		base_item["local_path"] = base_rel
+		base_item["is_base"] = true
+		base_item["generation_mode"] = "base"
+		base_item["base_sprite_path"] = ""
+		base_item["status"] = "ready"
+		base_item["width"] = 512
+		base_item["height"] = 768
+		base_item["name"] = "%s 半身立绘 (三视图提取·形象基准)" % cname
+		base_id = base_item.get("id", base_id)
+
+	# 将属于该角色的其他所有表情差分绑定以此 Base 作为 Image 1 锚点
+	for it in manifest_items:
+		if it is Dictionary and (it.get("character_id", "") == cid or it.get("entity_id", "") == cid):
+			if (it.get("sub_type", "") == "sprite" or it.get("type", "") == "character") and it.get("id", "") != base_id:
+				it["is_base"] = false
+				it["base_sprite_path"] = base_rel
+				if it.get("generation_mode", "") != "pose":
+					it["generation_mode"] = "expression"
+
+	# 同步至 DataManager 与 ProjectContext
+	var dm = _get_data_manager()
+	if dm and dm.characters.has(cid):
+		dm.characters[cid]["image"] = base_rel
+		dm.characters[cid]["character_image"] = base_rel
+	var pctx_obj = _get_project_context()
+	if pctx_obj and pctx_obj.active_project_data.has("characters") and pctx_obj.active_project_data["characters"].has(cid):
+		pctx_obj.active_project_data["characters"][cid]["image"] = base_rel
+		pctx_obj.active_project_data["characters"][cid]["character_image"] = base_rel
+
+	AIAssetMgr.save_manifest(manifest_items)
+	refresh_entity_list()
+	select_entity(cid)
+	var updated_ent = entities_summary.get("characters", {}).get(cid, ent)
+	render_character_workbench(cid, updated_ent)
+
+	lbl_gen_status.text = "🌟 已成功从全景三视图中裁切提取正视半身 (512×768)，并设为「%s」的唯一形象基准(Base)！" % cname
+
 func create_sprite_card(item: Dictionary) -> PanelContainer:
 	var card = PanelContainer.new()
 	card.custom_minimum_size = Vector2(210, 395)
@@ -1687,13 +2432,19 @@ func create_sprite_card(item: Dictionary) -> PanelContainer:
 	vbox.add_theme_constant_override("separation", 6)
 	margin.add_child(vbox)
 
-	# 缩略图
+	# 缩略图 (点击直接放大全屏检视)
 	var thumb_frame = PanelContainer.new()
 	thumb_frame.custom_minimum_size = Vector2(190, 150)
 	var tf_style = StyleBoxFlat.new()
 	tf_style.bg_color = Color(0.02, 0.03, 0.05, 1.0)
 	tf_style.set_corner_radius_all(4)
 	thumb_frame.add_theme_stylebox_override("panel", tf_style)
+	thumb_frame.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	thumb_frame.tooltip_text = "点击放大高清查看 (支持键盘 ← / → 连续轮播浏览)"
+	thumb_frame.gui_input.connect(func(ev: InputEvent):
+		if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			open_sprite_lightbox(item)
+	)
 	vbox.add_child(thumb_frame)
 
 	var img_rect = TextureRect.new()
@@ -1712,10 +2463,12 @@ func create_sprite_card(item: Dictionary) -> PanelContainer:
 
 	# 角色形象基准与差分继承状态栏
 	var cid = item.get("character_id", item.get("entity_id", ""))
-	var is_base = item.get("is_base", false)
-	if not item.has("is_base"):
-		if item.get("id", "") == "char_" + cid or item.get("name", "").contains("基础"):
+	var is_base = item.get("is_base", false) or (item.get("generation_mode", "") == "base")
+	if not is_base and not item.has("is_base"):
+		if item.get("id", "") == cid or item.get("id", "") == "char_" + cid or item.get("name", "").contains("基础") or item.get("name", "").contains("基准"):
 			is_base = true
+			item["is_base"] = true
+			item["generation_mode"] = "base"
 
 	var base_row = HBoxContainer.new()
 	base_row.add_theme_constant_override("separation", 4)
@@ -1883,6 +2636,16 @@ func create_sprite_card(item: Dictionary) -> PanelContainer:
 		open_file_in_explorer(item.get("local_path", ""))
 	)
 	act_row.add_child(btn_loc)
+
+	var btn_zoom = Button.new()
+	btn_zoom.text = "🔍"
+	btn_zoom.tooltip_text = "高清放大画廊检视 (支持键盘 ← / → 连续轮播浏览)"
+	btn_zoom.custom_minimum_size = Vector2(34, 30)
+	style_button(btn_zoom, "secondary")
+	btn_zoom.pressed.connect(func():
+		open_sprite_lightbox(item)
+	)
+	act_row.add_child(btn_zoom)
 
 	return card
 
@@ -2119,13 +2882,36 @@ func change_item_status(item: Dictionary, new_status: String) -> void:
 	# 刷新实体汇总数据、左侧导航列表与当前工作台
 	refresh_entity_list()
 
+func _get_data_manager():
+	if is_inside_tree():
+		return get_node_or_null("/root/DataManager")
+	var ml = Engine.get_main_loop()
+	if ml and ml is SceneTree and ml.root:
+		return ml.root.get_node_or_null("DataManager")
+	return null
+
+func _get_project_context():
+	if is_inside_tree():
+		return get_node_or_null("/root/ProjectContext")
+	var ml = Engine.get_main_loop()
+	if ml and ml is SceneTree and ml.root:
+		return ml.root.get_node_or_null("ProjectContext")
+	return null
+
+func _get_project_dir() -> String:
+	var pctx = _get_project_context()
+	if pctx and "active_project_dir" in pctx and not str(pctx.active_project_dir).is_empty():
+		var p = str(pctx.active_project_dir)
+		return p if p.ends_with("/") else p + "/"
+	return "res://projects/case_gallery_rain/"
+
 # --- 一键在操作系统中打开并定位文件夹 ---
 func open_file_in_explorer(file_or_dir_path: String) -> void:
 	var path_str = file_or_dir_path.strip_edges()
 	
 	# 如果路径为空，智能推导当前分类的默认资源存放路径
 	if path_str.is_empty():
-		var pdir = ProjectContext.active_project_dir
+		var pdir = _get_project_dir()
 		if pdir.is_empty():
 			pdir = "res://projects/case_gallery_rain/"
 		if not pdir.ends_with("/"):
@@ -2144,7 +2930,7 @@ func open_file_in_explorer(file_or_dir_path: String) -> void:
 
 	# 规范化相对路径
 	if not path_str.begins_with("res://") and not path_str.begins_with("user://") and not path_str.is_absolute_path():
-		var pdir = ProjectContext.active_project_dir
+		var pdir = _get_project_dir()
 		if pdir.is_empty():
 			pdir = "res://projects/case_gallery_rain/"
 		if not pdir.ends_with("/"):
@@ -2186,7 +2972,7 @@ func open_file_in_explorer(file_or_dir_path: String) -> void:
 		return
 		
 	# 3. 兜底保护：打开当前活动工程的 assets 目录
-	var cur_pdir = ProjectContext.active_project_dir
+	var cur_pdir = _get_project_dir()
 	if not cur_pdir.is_empty():
 		var p_assets = ProjectSettings.globalize_path(cur_pdir.path_join("assets"))
 		if not DirAccess.dir_exists_absolute(p_assets):
@@ -2222,7 +3008,7 @@ func _on_external_file_selected(source_path: String) -> void:
 	
 	# 如果原本没有指定目标路径，根据类型与工程目录推导标准路径
 	if target_rel_path.is_empty():
-		var pdir = ProjectContext.active_project_dir
+		var pdir = _get_project_dir()
 		if pdir.is_empty():
 			pdir = "res://projects/case_gallery_rain/"
 		if not pdir.ends_with("/"):
@@ -2264,12 +3050,14 @@ func _on_external_file_selected(source_path: String) -> void:
 			break
 
 	AIAssetMgr.save_manifest(manifest_items)
-	ProjectContext.rebuild_asset_index()
+	var pctx_reb = _get_project_context()
+	if pctx_reb and pctx_reb.has_method("rebuild_asset_index"):
+		pctx_reb.rebuild_asset_index()
 	lbl_gen_status.text = "✅ 成功导入并绑定外部资产: " + source_path.get_file()
 	refresh_entity_list()
 
 func _on_open_current_entity_folder() -> void:
-	var pdir = ProjectContext.active_project_dir
+	var pdir = _get_project_dir()
 	if pdir.is_empty():
 		pdir = "res://projects/case_gallery_rain/"
 	if not pdir.ends_with("/"):
@@ -2372,8 +3160,18 @@ func _on_single_gen_finished(item: Dictionary, res: Dictionary) -> void:
 	gen_start_time = 0.0
 	if res.get("success", false):
 		item["status"] = "ready"
+		
+		# 若生成的为正视图 (front view)，自动确立为形象基准并同步主立绘
+		var vk = item.get("view_type", "")
+		if vk == "front" or item.get("id", "").ends_with("_front"):
+			var cid = item.get("character_id", item.get("entity_id", ""))
+			var ent = entities_summary.get("characters", {}).get(cid, {})
+			apply_front_view_as_base(cid, ent, item)
+			lbl_gen_status.text = "🌟 正视主立绘生成成功，已自动设为角色 [%s] 的形象基准 (Base)！" % cid
+		else:
+			lbl_gen_status.text = "✅ 生成成功: %s (耗时 %.1fs)" % [item.get("name", ""), elapsed]
+		
 		AIAssetMgr.save_manifest(manifest_items)
-		lbl_gen_status.text = "✅ 生成成功: %s (耗时 %.1fs)" % [item.get("name", ""), elapsed]
 		refresh_entity_list()
 		select_entity(selected_entity_id)
 	else:
@@ -2549,6 +3347,13 @@ func _on_batch_all_finished(total: int) -> void:
 	batch_total_count = 0
 	batch_current_index = 0
 
+	# 检查批处理中是否包含 front view，自动确立为形象基准
+	for it in manifest_items:
+		if it is Dictionary and it.get("status", "") == "ready" and (it.get("view_type", "") == "front" or it.get("id", "").ends_with("_front")):
+			var cid = it.get("character_id", it.get("entity_id", ""))
+			var ent = entities_summary.get("characters", {}).get(cid, {})
+			apply_front_view_as_base(cid, ent, it)
+
 	AIAssetMgr.save_manifest(manifest_items)
 	lbl_gen_status.text = "✅ 批量生成完成！共处理 %d 项素材 (总耗时 %.1fs)。" % [total, total_elapsed]
 	refresh_entity_list()
@@ -2635,23 +3440,47 @@ func test_comfy_connection() -> void:
 		var ckpts = res.get("checkpoints", [])
 		if ckpts.size() > 0:
 			opt_checkpoint.clear()
+			var desired_ck = txt_checkpoint.text
 			for i in range(ckpts.size()):
 				var ck = ckpts[i]
-				opt_checkpoint.add_item(ck, i)
+				var display_name = ck
+				if ck.ends_with(".gguf") or ck.to_lower().contains("2.1"):
+					display_name = "🔮 Qwen-2.1 GGUF 方案 (二代多模态差分)"
+				elif ck.to_lower().contains("nunchaku") or ck.to_lower().contains("2511"):
+					display_name = "⚡ Qwen-2511 INT4 方案 (4060专属加速)"
+				elif ck.to_lower().contains("anima"):
+					display_name = "🎨 Anima SDXL 方案 (轻量快速生图)"
+				else:
+					display_name = "📦 " + ck
+				opt_checkpoint.add_item(display_name, i)
 				opt_checkpoint.set_item_metadata(i, ck)
-				if ck == txt_checkpoint.text:
+				opt_checkpoint.set_item_tooltip(i, "底层模型: " + ck)
+				if ck == desired_ck:
 					opt_checkpoint.selected = i
 			if opt_checkpoint.selected == -1:
-				opt_checkpoint.selected = 0
-				txt_checkpoint.text = ckpts[0]
-				ai_settings["checkpoint"] = ckpts[0]
+				var cur_host = txt_comfy_host.text
+				var pick_idx = 0
+				for i in range(ckpts.size()):
+					var ck = ckpts[i]
+					if (cur_host.contains("199") or cur_host.contains("rtx6000")) and ck.ends_with(".gguf"):
+						pick_idx = i
+						break
+					elif not cur_host.contains("199") and (ck.contains("nunchaku") or ck.contains("2511")):
+						pick_idx = i
+						break
+				opt_checkpoint.selected = pick_idx
+				var chosen = ckpts[pick_idx]
+				txt_checkpoint.text = chosen
+				ai_settings["checkpoint"] = chosen
+				_update_current_env_checkpoint(chosen)
+				AIAssetMgr.save_ai_settings(ai_settings)
 	else:
 		lbl_conn_status.text = "🔴 未连接 (%s)" % res.get("error", "超时")
 		lbl_conn_status.modulate = Color(1.0, 0.4, 0.4)
 
 # --- 主动自主创作接口 (Proactive Creation) ---
 func proactive_generate_character_sprite(cid: String, ent: Dictionary) -> void:
-	var pdir = ProjectContext.active_project_dir
+	var pdir = _get_project_dir()
 	if pdir.is_empty():
 		pdir = "res://projects/case_gallery_rain/"
 	if not pdir.ends_with("/"):
@@ -2718,7 +3547,7 @@ func test_character_voice(ent: Dictionary) -> void:
 		lbl_gen_status.text = "❌ 试听语音合成失败，请检查 Python / Edge-TTS 环境。"
 
 func proactive_generate_scene_background(sc_id: String, ent: Dictionary) -> void:
-	var pdir = ProjectContext.active_project_dir
+	var pdir = _get_project_dir()
 	if pdir.is_empty():
 		pdir = "res://projects/case_gallery_rain/"
 	if not pdir.ends_with("/"):
@@ -2753,7 +3582,7 @@ func proactive_generate_scene_background(sc_id: String, ent: Dictionary) -> void
 	start_single_generation(new_item)
 
 func proactive_generate_clue_image(clue_id: String, ent: Dictionary) -> void:
-	var pdir = ProjectContext.active_project_dir
+	var pdir = _get_project_dir()
 	if pdir.is_empty():
 		pdir = "res://projects/case_gallery_rain/"
 	if not pdir.ends_with("/"):
@@ -2811,7 +3640,7 @@ func _on_confirm_add_sprite() -> void:
 	if suffix.is_empty():
 		suffix = "表情差分"
 	
-	var pdir = ProjectContext.active_project_dir
+	var pdir = _get_project_dir()
 	if pdir.is_empty():
 		pdir = "res://projects/case_gallery_rain/"
 	if not pdir.ends_with("/"):
@@ -2899,6 +3728,7 @@ func set_character_base_sprite(cid: String, base_item: Dictionary) -> void:
 				it["is_base"] = (it.get("id", "") == base_id)
 				if it.get("id", "") == base_id:
 					it["base_sprite_path"] = ""
+					it["generation_mode"] = "base"
 				else:
 					it["base_sprite_path"] = base_item.get("local_path", "")
 	AIAssetMgr.save_manifest(manifest_items)
@@ -2910,6 +3740,88 @@ func set_character_base_sprite(cid: String, base_item: Dictionary) -> void:
 func open_pose_editor_dialog(cid: String, ent: Dictionary) -> void:
 	if dlg_pose_editor:
 		dlg_pose_editor.open_for_character(cid, ent)
+
+func open_character_sheet_dialog(cid: String, ent: Dictionary) -> void:
+	var dm = _get_data_manager()
+	if dm and dm.characters.has(cid) and dm.characters[cid].has("character_sheet"):
+		ent["character_sheet"] = dm.characters[cid]["character_sheet"]
+	var dlg = CharacterSheetDialogClass.new()
+	add_child(dlg)
+	dlg.setup_character(cid, ent)
+	dlg.sheet_applied.connect(func(_cid, _assembled):
+		sync_manifest()
+		refresh_entity_list()
+		var updated_ent = entities_summary.get("characters", {}).get(cid, ent)
+		render_character_workbench(cid, updated_ent)
+	)
+	dlg.popup_centered()
+
+func open_sprite_lightbox(target_item: Dictionary) -> void:
+	var cid = target_item.get("character_id", target_item.get("entity_id", selected_entity_id))
+	var clean_cid = cid.substr(5) if cid.begins_with("char_") else cid
+	var ent = entities_summary.get("characters", {}).get(cid, {})
+	var cname = ent.get("name", cid)
+	var sprites: Array = []
+	var seen_paths: Dictionary = {}
+	var pdir = _get_project_dir()
+
+	# 1. 优先加入三视图立绘 (正视、侧视、背视)
+	var view_keys = ["front", "side", "back"]
+	for vk in view_keys:
+		var v_id = "char_%s_%s" % [clean_cid, vk]
+		var v_path = pdir + "assets/images/characters/char_%s_%s.png" % [clean_cid, vk]
+		for it in manifest_items:
+			if it is Dictionary and (it.get("id", "") == v_id or it.get("local_path", "") == v_path):
+				var p = it.get("local_path", "")
+				if not p.is_empty() and not seen_paths.has(p):
+					seen_paths[p] = true
+					sprites.append(it)
+				break
+
+	# 2. 加入当前实体的所有表情差分与立绘
+	for sp in ent.get("sprites", []):
+		var p = sp.get("local_path", sp.get("path", ""))
+		if not p.is_empty() and not seen_paths.has(p):
+			seen_paths[p] = true
+			sprites.append(sp)
+
+	# 3. 加入 manifest_items 中的其他图片素材
+	for it in manifest_items:
+		if it is Dictionary and (it.get("character_id", "") == cid or it.get("entity_id", "") == cid):
+			if it.get("sub_type", "") != "voice" and it.get("type", "") != "voice":
+				var p = it.get("local_path", "")
+				if not p.is_empty() and not seen_paths.has(p):
+					seen_paths[p] = true
+					sprites.append(it)
+
+	# 4. 加入 16:9 全景三视图概念母本
+	var t_item = ent.get("turnaround")
+	if t_item != null:
+		var p = t_item.get("local_path", "")
+		if not p.is_empty() and not seen_paths.has(p):
+			seen_paths[p] = true
+			sprites.append(t_item)
+
+	# 5. 精确定位当前点击的目标项 (按 id 与 local_path 归一化双重匹配)
+	var target_id = target_item.get("id", "")
+	var target_path = target_item.get("local_path", target_item.get("path", "")).replace("\\", "/").strip_edges().to_lower()
+	var start_idx = -1
+	for i in range(sprites.size()):
+		var sp_id = sprites[i].get("id", "")
+		var sp_path = sprites[i].get("local_path", sprites[i].get("path", "")).replace("\\", "/").strip_edges().to_lower()
+		if (not target_id.is_empty() and sp_id == target_id) or (not target_path.is_empty() and sp_path == target_path):
+			start_idx = i
+			break
+
+	# 兜底保底：若仍未在列表中，直接将目标立绘插入头部
+	if start_idx == -1:
+		sprites.insert(0, target_item)
+		start_idx = 0
+
+	var dlg = SpriteLightboxDialogClass.new()
+	add_child(dlg)
+	dlg.setup_gallery(cname, sprites, start_idx)
+	dlg.popup_centered()
 
 func _on_pose_sprite_generated(new_item: Dictionary) -> void:
 	manifest_items.append(new_item)
@@ -2938,7 +3850,7 @@ func _on_confirm_add_voice() -> void:
 		lbl_gen_status.text = "⚠️ 台词文本不能为空！"
 		return
 	
-	var pdir = ProjectContext.active_project_dir
+	var pdir = _get_project_dir()
 	if pdir.is_empty():
 		pdir = "res://projects/case_gallery_rain/"
 	if not pdir.ends_with("/"):
@@ -3022,6 +3934,9 @@ func _on_server_preset_selected(idx: int) -> void:
 		txt_comfy_host.text = env.get("server", "http://127.0.0.1:8188")
 		txt_comfy_user.text = env.get("user", "")
 		txt_comfy_pass.text = env.get("password", "")
+		if env.has("checkpoint") and not str(env.get("checkpoint", "")).is_empty():
+			txt_checkpoint.text = str(env.get("checkpoint"))
+			ai_settings["checkpoint"] = txt_checkpoint.text
 		
 		ai_settings["comfyui_server"] = txt_comfy_host.text
 		ai_settings["comfyui_user"] = txt_comfy_user.text
@@ -3030,6 +3945,15 @@ func _on_server_preset_selected(idx: int) -> void:
 		
 		lbl_gen_status.text = "已切换至环境: " + str(env.get("name", ""))
 		test_comfy_connection()
+
+func _update_current_env_checkpoint(ck: String) -> void:
+	var cur_env_id = str(ai_settings.get("current_env_id", ""))
+	var envs = ai_settings.get("comfyui_environments", [])
+	for e in envs:
+		if e is Dictionary and str(e.get("id", "")) == cur_env_id:
+			e["checkpoint"] = ck
+			break
+	ai_settings["comfyui_environments"] = envs
 
 func _restore_env_dropdown_selection() -> void:
 	var cur_id = str(ai_settings.get("current_env_id", ""))
@@ -3242,5 +4166,47 @@ func _on_confirm_edit_env() -> void:
 	if dlg_manage_env.visible:
 		_render_env_manager_list()
 	lbl_gen_status.text = "✅ 环境配置已更新！"
+
+func open_edit_templates_dialog() -> void:
+	if ai_settings == null or ai_settings.is_empty():
+		ai_settings = AIAssetMgr.load_ai_settings()
+	var tpls = ai_settings.get("prompt_templates", {})
+	if tpls.is_empty():
+		var def = AIAssetMgr.get_default_ai_settings()
+		tpls = def.get("prompt_templates", {})
+	
+	txt_tpl_diff.text = tpls.get("diff_template", "")
+	chk_tpl_scale_enabled.button_pressed = tpls.get("scale_anchor_enabled", true)
+	txt_tpl_scale_tall.text = tpls.get("scale_rule_tall", "")
+	txt_tpl_scale_medium.text = tpls.get("scale_rule_medium", "")
+	txt_tpl_scale_petite.text = tpls.get("scale_rule_petite", "")
+	txt_tpl_base_char.text = tpls.get("base_char_template", "")
+	
+	dlg_edit_templates.popup_centered()
+
+func _reset_templates_to_default() -> void:
+	var def = AIAssetMgr.get_default_ai_settings()
+	var tpls = def.get("prompt_templates", {})
+	txt_tpl_diff.text = tpls.get("diff_template", "")
+	chk_tpl_scale_enabled.button_pressed = tpls.get("scale_anchor_enabled", true)
+	txt_tpl_scale_tall.text = tpls.get("scale_rule_tall", "")
+	txt_tpl_scale_medium.text = tpls.get("scale_rule_medium", "")
+	txt_tpl_scale_petite.text = tpls.get("scale_rule_petite", "")
+	txt_tpl_base_char.text = tpls.get("base_char_template", "")
+
+func _on_confirm_edit_templates() -> void:
+	if not ai_settings.has("prompt_templates") or not (ai_settings["prompt_templates"] is Dictionary):
+		ai_settings["prompt_templates"] = {}
+	
+	ai_settings["prompt_templates"]["diff_template"] = txt_tpl_diff.text.strip_edges()
+	ai_settings["prompt_templates"]["scale_anchor_enabled"] = chk_tpl_scale_enabled.button_pressed
+	ai_settings["prompt_templates"]["scale_rule_tall"] = txt_tpl_scale_tall.text.strip_edges()
+	ai_settings["prompt_templates"]["scale_rule_medium"] = txt_tpl_scale_medium.text.strip_edges()
+	ai_settings["prompt_templates"]["scale_rule_petite"] = txt_tpl_scale_petite.text.strip_edges()
+	ai_settings["prompt_templates"]["base_char_template"] = txt_tpl_base_char.text.strip_edges()
+	
+	AIAssetMgr.save_ai_settings(ai_settings)
+	lbl_gen_status.text = "✅ 已成功保存并更新生成母版与身高定标规则！"
+	dlg_edit_templates.hide()
 
 

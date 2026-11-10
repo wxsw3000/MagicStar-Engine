@@ -1,9 +1,9 @@
 # editor/core/ai_asset_manager.gd
 # AI 资产工坊核心管理器：管理配置、资产清单、ComfyUI生图与TTS调度
-class_name AIAssetManager
 extends RefCounted
 
 const PoseMannequinClass = preload("res://editor/ui/pose_editor/pose_mannequin_3d.gd")
+const CharacterSheetMgr = preload("res://editor/core/character_sheet_manager.gd")
 const AI_CONFIG_PATH = "res://config/ai_settings.json"
 const MANIFEST_PATH = "res://data/assets/asset_manifest.json"
 
@@ -11,56 +11,56 @@ const STYLE_PRESETS = {
 	"dark_mystery": {
 		"id": "dark_mystery",
 		"name": "🎬 本格悬疑黑金风 (默认)",
-		"prompt": "本格悬疑推理日系动漫风格，精美二次元视觉小说立绘，剧场版光影，电影感，masterpiece, anime visual novel, dark mystery, cinematic lighting",
-		"negative": "低质量，模糊，变形，多余肢体，文字，水印，worst quality, blurry, bad anatomy, deformed limbs"
+		"prompt": "本格悬疑推理日系动漫风格，精美二次元视觉小说立绘，剧场版光影，电影感，杰作，极高画质",
+		"negative": "低质量，最差画质，模糊，粗糙，严重变形，多余肢体，衰老褶皱，法令纹，眼袋，粗糙毛孔，文字，水印"
 	},
 	"ghibli": {
 		"id": "ghibli",
 		"name": "🌿 宫崎骏 / 吉卜力手绘风",
-		"prompt": "吉卜力动漫手绘水粉风格，宫崎骏美学，温暖治愈，高画质二次元插画，studio ghibli style, hand-painted anime illustration, soft warm lighting",
-		"negative": "写实，3D塑料质感，现代CG，低质量，模糊，photorealistic, 3d render, worst quality"
+		"prompt": "吉卜力动漫手绘水粉风格，宫崎骏美学，温暖治愈，高画质二次元插画，柔和暖光，杰作",
+		"negative": "写实，3D塑料质感，现代CG，低质量，模糊，粗糙，严重变形"
 	},
 	"western_fantasy": {
 		"id": "western_fantasy",
 		"name": "🏰 欧美奇幻 / 写实风",
-		"prompt": "欧美史诗奇幻写实插画，油画厚涂质感，伦勃朗戏剧性光影，cinematic realism, western fantasy concept art, oil painting texture",
-		"negative": "二次元平涂，简笔卡通，多余肢体，低质量，flat anime, 2d cartoon, worst quality"
+		"prompt": "欧美史诗奇幻写实插画，油画厚涂质感，伦勃朗戏剧性光影，概念艺术，电影级质感",
+		"negative": "二次元平涂，简笔卡通，多余肢体，低质量，模糊，变形"
 	},
 	"japanese_wafuu": {
 		"id": "japanese_wafuu",
 		"name": "⛩️ 日式二次元 / 和风",
-		"prompt": "精致和风日系动漫立绘，浮世绘古典优雅韵味，干净细腻线条，japanese anime visual novel, wafuu aesthetic, elegant traditional atmosphere",
-		"negative": "美漫写实，3D模型，噪点，低质量，western comic, 3d, noisy, worst quality"
+		"prompt": "精致和风日系动漫立绘，浮世绘古典优雅韵味，干净细腻线条，高画质二次元视觉小说",
+		"negative": "美漫写实，3D模型，噪点，低质量，模糊，变形"
 	},
 	"chinese_guofeng": {
 		"id": "chinese_guofeng",
 		"name": "🏮 中式国风 / 仙侠水墨",
-		"prompt": "典雅新中式国风插画，水墨意境晕染，朱砂与青黛配色，诗意唯美，chinese traditional aesthetics, elegant guofeng illustration, ink wash gradient",
-		"negative": "西式魔幻，现代霓虹，杂乱涂鸦，低质量，western fantasy, neon, messy, worst quality"
+		"prompt": "典雅新中式国风插画，水墨意境晕染，朱砂与青黛配色，诗意唯美，高画质国风立绘",
+		"negative": "西式魔幻，现代霓虹，杂乱涂鸦，低质量，模糊，变形"
 	},
 	"cute_chibi": {
 		"id": "cute_chibi",
 		"name": "🧸 卡通风 / Q版萌系",
-		"prompt": "超可爱二次元Q版萌系插画，大眼萌化比例，清新马卡龙柔和色调，绘本风格，cute chibi style, kawaii 2D cartoon, rounded proportions",
-		"negative": "写实恐怖，肌肉线条，阴暗怪诞，低质量，realistic, creepy, muscular, worst quality"
+		"prompt": "超可爱二次元Q版萌系插画，大眼萌化比例，清新马卡龙柔和色调，绘本风格",
+		"negative": "写实恐怖，肌肉线条，阴暗怪诞，低质量，模糊，变形"
 	},
 	"dark_cthulhu": {
 		"id": "dark_cthulhu",
 		"name": "👁️ 暗黑 / 恐怖 / 克苏鲁",
-		"prompt": "克苏鲁宇宙未知恐惧氛围，暗黑怪诞美学，冷色调迷雾与深渊阴影，lovecraftian cosmic horror, dark eerie atmosphere, eldritch shadows",
-		"negative": "明亮温馨，可爱动漫，艳丽高饱和，低质量，bright, cheerful, cute, colorful, worst quality"
+		"prompt": "克苏鲁宇宙未知恐惧氛围，暗黑怪诞美学，冷色调迷雾与深渊阴影，不可名状之物",
+		"negative": "明亮温馨，可爱动漫，艳丽高饱和，低质量，模糊，变形"
 	},
 	"pixel_retro": {
 		"id": "pixel_retro",
 		"name": "👾 像素 / 复古 16-bit",
-		"prompt": "复古16位像素风视觉小说立绘，清晰像素边缘，点阵阴影质感，masterpiece pixel art, 16-bit retro visual novel, crisp pixel edges",
-		"negative": "光滑渐变，平滑矢量，真实照片，低质量，smooth gradient, blurry, photograph, worst quality"
+		"prompt": "复古16位像素风视觉小说立绘，清晰像素边缘，点阵阴影质感，怀旧街机质感",
+		"negative": "光滑渐变，平滑矢量，真实照片，低质量，模糊"
 	},
 	"watercolor_art": {
 		"id": "watercolor_art",
 		"name": "🎨 水彩 / 手绘 / 艺术画风",
-		"prompt": "唯美梦幻水彩手绘，湿画法水痕肌理，纸质纹理与柔和色彩扩散，dreamy watercolor painting, delicate brush strokes, bleeding pigments",
-		"negative": "数码塑料感，锐利生硬边缘，3D渲染，低质量，digital cgi, plastic 3d, sharp harsh lines, worst quality"
+		"prompt": "唯美梦幻水彩手绘，湿画法水痕肌理，纸质纹理与柔和色彩扩散，艺术级插画",
+		"negative": "数码塑料感，锐利生硬边缘，3D渲染，低质量，模糊"
 	}
 }
 
@@ -81,13 +81,28 @@ static func get_python_executable() -> String:
 			return c
 	return "python"
 
+static func _get_data_manager():
+	var ml = Engine.get_main_loop()
+	if ml and ml is SceneTree and ml.root:
+		return ml.root.get_node_or_null("DataManager")
+	return null
+
+static func _get_project_context():
+	var ml = Engine.get_main_loop()
+	if ml and ml is SceneTree and ml.root:
+		return ml.root.get_node_or_null("ProjectContext")
+	return null
+
 # --- 资产物理路径沙盒化：确保属于当前工程的素材 100% 写入工程专属 assets/ 目录 ---
+static func _get_project_dir() -> String:
+	var pctx = _get_project_context()
+	if pctx and "active_project_dir" in pctx and not str(pctx.active_project_dir).is_empty():
+		var p = str(pctx.active_project_dir)
+		return p if p.ends_with("/") else p + "/"
+	return "res://projects/case_gallery_rain/"
+
 static func get_sandboxed_asset_path(item: Dictionary) -> String:
-	var pdir = ProjectContext.active_project_dir
-	if pdir.is_empty():
-		pdir = "res://projects/case_01_storm_villa/"
-	if not pdir.ends_with("/"):
-		pdir += "/"
+	var pdir = _get_project_dir()
 		
 	var item_type = item.get("type", "background")
 	var item_id = item.get("id", "asset_" + str(int(Time.get_unix_time_from_system())))
@@ -96,7 +111,7 @@ static func get_sandboxed_asset_path(item: Dictionary) -> String:
 	if item_type == "background":
 		ext = "png"
 		subfolder = "images/backgrounds"
-	elif item_type == "character":
+	elif item_type == "character" or item_type == "turnaround":
 		ext = "png"
 		subfolder = "images/characters"
 	elif item_type == "bgm":
@@ -219,12 +234,13 @@ static func load_ai_settings() -> Dictionary:
 		settings[k] = global_settings[k]
 
 	var proj_settings: Dictionary = {}
-	if ProjectContext.active_project_data.has("ai_settings") and (ProjectContext.active_project_data["ai_settings"] is Dictionary):
-		proj_settings = ProjectContext.active_project_data["ai_settings"]
-	elif not ProjectContext.active_project_dir.is_empty():
-		var pjson = ProjectContext.active_project_dir + "project.json"
+	var pctx = _get_project_context()
+	if pctx and pctx.active_project_data.has("ai_settings") and (pctx.active_project_data["ai_settings"] is Dictionary):
+		proj_settings = pctx.active_project_data["ai_settings"]
+	elif pctx and not str(pctx.active_project_dir).is_empty():
+		var pjson = str(pctx.active_project_dir) + "project.json"
 		if FileAccess.file_exists(pjson):
-			var pdata = ProjectContext.load_json_file(pjson)
+			var pdata = pctx.load_json_file(pjson)
 			if pdata.has("ai_settings") and (pdata["ai_settings"] is Dictionary):
 				proj_settings = pdata["ai_settings"]
 
@@ -256,9 +272,10 @@ static func save_ai_settings(settings: Dictionary) -> bool:
 		file.close()
 	
 	# 2. 如果当前有活动工程，同步更新工程内部的 ai_settings
-	if not ProjectContext.active_project_dir.is_empty():
-		ProjectContext.active_project_data["ai_settings"] = settings
-		ProjectContext.save_active_project()
+	var pctx = _get_project_context()
+	if pctx and not str(pctx.active_project_dir).is_empty():
+		pctx.active_project_data["ai_settings"] = settings
+		pctx.save_active_project()
 		
 	return true
 
@@ -279,26 +296,35 @@ static func get_default_ai_settings() -> Dictionary:
 		"current_env_id": "env_local",
 		"checkpoint": "sd_xl_turbo_1.0.safetensors",
 		"global_style_preset": "dark_mystery",
-		"global_style_prompt": "masterpiece, best quality, anime visual novel, victorian dark mystery, cinematic lighting",
-		"global_negative_prompt": "worst quality, low quality, blurry, bad anatomy, deformed limbs, (text:1.5), (watermark:1.5), (signature:1.5), (artist name:1.5), (username:1.4), (subtitles:1.5), (dialogue box:1.4), (words:1.4), (letters:1.4), (font:1.4), (caption:1.4), (ui:1.4), (speech bubble:1.4), (label:1.4), (gibberish:1.3), noisy",
-		"character_base_prompt": "solo, waist-up portrait, standing pose, white background, simple background",
-		"bg_base_prompt": "scenery, background, interior or exterior, highly detailed, no humans",
-		"tts_voice_default": "zh-CN-XiaoxiaoNeural",
+		"global_style_prompt": "本格悬疑推理日系动漫风格，精美二次元视觉小说立绘，剧场版光影，电影感，杰作，极高画质",
+		"global_negative_prompt": "低质量，最差画质，模糊，粗糙，严重变形，畸形肢体，残缺肢体，画错的手脚，衰老褶皱，法令纹，眼袋，粗糙皮肤毛孔，皮肤下垂，丑陋，文字，水印，签名，作者名，字幕，对话框，字体，杂乱涂鸦，噪点",
+		"character_base_prompt": "单人，半身立绘，站立姿态，纯白背景，干净背景",
+		"bg_base_prompt": "场景插画，室内或室外背景，极高细节度，无人空镜头",
+		"tts_voice_default": "zh-CN-YunxiNeural",
 		"bg_width": 1024,
 		"bg_height": 576,
 		"char_width": 512,
-		"char_height": 768
+		"char_height": 768,
+		"prompt_templates": {
+			"base_char_template": "{画质}, {画风}, {头身比}, {性别}{年龄}岁青年角色, {身高}{体型}, {脸型眼神}, {发型发色}, {肤色}, 穿着{服装风格}, {服装配色}, {服装材质}, {气质}气质, {表情}默认神情, {构图机位}, {光影氛围}, {尺寸定标}, 独立单人立绘, (单人:1.4), 纯白背景",
+			"diff_template": "将图1中角色的面部表情修改为：{expression}。重点调整眉毛、眼神与嘴角微表情，神态自然生动；严格保持{name}原本的年轻动漫脸型与细腻平滑肌肤，绝对禁止衰老褶皱、法令纹与眼袋；保持镜头机位、半身构图、动作姿态与发型服装完全一致，{accessory_rule}。",
+			"scale_anchor_enabled": true,
+			"scale_rule_medium": "(标准匀称身形:1.1), (人物脚底紧贴画面底边基准线:1.3), (头顶适度留白15%:1.1), 170厘米标准身形画框比例",
+			"scale_rule_petite": "(娇小低矮身形:1.3), (人物脚底紧贴画面底边基准线:1.3), (头顶保留24%大面积空旷留白:1.3), 160厘米娇小身形画框比例",
+			"scale_rule_tall": "(高大挺拔身形:1.25), (人物脚底紧贴画面底边基准线:1.3), (头顶逼近画面上方, 顶部仅留8%微小留白:1.2), 180厘米以上身形画框比例"
+		}
 	}
 
 # --- 资产清单加载与存储 (100% 绑定当前活动工程) ---
 static func load_manifest() -> Array:
 	var items: Array = []
-	if ProjectContext.active_project_data.has("asset_manifest") and (ProjectContext.active_project_data["asset_manifest"] is Array):
-		items = ProjectContext.active_project_data["asset_manifest"]
-	elif not ProjectContext.active_project_dir.is_empty():
-		var pjson = ProjectContext.active_project_dir + "project.json"
+	var pctx = _get_project_context()
+	if pctx and pctx.active_project_data.has("asset_manifest") and (pctx.active_project_data["asset_manifest"] is Array):
+		items = pctx.active_project_data["asset_manifest"]
+	elif pctx and not str(pctx.active_project_dir).is_empty():
+		var pjson = str(pctx.active_project_dir) + "project.json"
 		if FileAccess.file_exists(pjson):
-			var pdata = ProjectContext.load_json_file(pjson)
+			var pdata = pctx.load_json_file(pjson)
 			items = pdata.get("asset_manifest", [])
 	elif FileAccess.file_exists(MANIFEST_PATH):
 		var file = FileAccess.open(MANIFEST_PATH, FileAccess.READ)
@@ -317,9 +343,10 @@ static func save_manifest(items: Array) -> bool:
 	for it in items:
 		if it is Dictionary:
 			get_sandboxed_asset_path(it)
-	if not ProjectContext.active_project_dir.is_empty():
-		ProjectContext.active_project_data["asset_manifest"] = items
-		ProjectContext.save_active_project()
+	var pctx = _get_project_context()
+	if pctx and not str(pctx.active_project_dir).is_empty():
+		pctx.active_project_data["asset_manifest"] = items
+		pctx.save_active_project()
 		return true
 	var dir = MANIFEST_PATH.get_base_dir()
 	if not DirAccess.dir_exists_absolute(dir):
@@ -349,15 +376,14 @@ static func sync_manifest_with_project() -> Array:
 	for it in items:
 		item_map[it.get("id", "")] = it
 
-	var pdir = ProjectContext.active_project_dir
-	if pdir.is_empty():
-		pdir = "res://projects/case_01/"
-	if not pdir.ends_with("/"):
-		pdir += "/"
+	var pdir = _get_project_dir()
+	var dm = _get_data_manager()
+	if not dm:
+		return items
 
 	# 1. 扫描场景背景与BGM
-	for sc_id in DataManager.scenes:
-		var sc = DataManager.scenes[sc_id]
+	for sc_id in (dm.scenes if dm else {}):
+		var sc = dm.scenes[sc_id]
 		var sc_name = sc.get("name", sc_id)
 		var bg_path = sc.get("background", "")
 		if not bg_path.is_empty():
@@ -412,8 +438,8 @@ static func sync_manifest_with_project() -> Array:
 				it["sub_type"] = "bgm"
 
 	# 2. 扫描对话中的角色立绘与配音
-	for d_id in DataManager.dialogues:
-		var diag = DataManager.dialogues[d_id]
+	for d_id in (dm.dialogues if dm else {}):
+		var diag = dm.dialogues[d_id]
 		var lines = diag.get("lines", [])
 		for idx in range(lines.size()):
 			var line = lines[idx]
@@ -490,8 +516,8 @@ static func sync_manifest_with_project() -> Array:
 					it["sub_type"] = "voice"
 
 	# 3. 扫描线索物证 (Clues)
-	for clue_id in DataManager.clues:
-		var clue = DataManager.clues[clue_id]
+	for clue_id in (dm.clues if dm else {}):
+		var clue = dm.clues[clue_id]
 		var cname = clue.get("name", clue.get("title", clue_id))
 		var clue_img = clue.get("image", clue.get("icon", ""))
 		if clue_img.is_empty():
@@ -538,8 +564,8 @@ static func sync_manifest_with_project() -> Array:
 					if not base_id.begins_with("clue_"):
 						var matched_cid = ""
 						var matched_cname = ""
-						for cid in DataManager.characters:
-							var c = DataManager.characters[cid]
+						for cid in (dm.characters if dm else {}):
+							var c = dm.characters[cid]
 							var cname = c.get("name", cid)
 							if base_id == cid or base_id.begins_with(cid + "_") or base_id.begins_with("char_" + cid + "_"):
 								matched_cid = cid
@@ -609,8 +635,9 @@ static func sync_manifest_with_project() -> Array:
 	return items
 
 static func deduce_character_entity_id(speaker: String) -> String:
-	for cid in DataManager.characters:
-		var c = DataManager.characters[cid]
+	var dm = _get_data_manager()
+	for cid in (dm.characters if dm else {}):
+		var c = dm.characters[cid]
 		if c.get("name", "") == speaker or cid == speaker:
 			return cid
 	if speaker == "旁白" or "独白" in speaker or "内心" in speaker or speaker.is_empty():
@@ -619,6 +646,7 @@ static func deduce_character_entity_id(speaker: String) -> String:
 
 # --- 实体资产结构化聚合 (Domain Entity Aggregator) ---
 static func get_entities_summary(items: Array) -> Dictionary:
+	var dm = _get_data_manager()
 	var result = {
 		"characters": {},
 		"scenes": {},
@@ -633,14 +661,17 @@ static func get_entities_summary(items: Array) -> Dictionary:
 	}
 
 	# 预先从 DataManager 载入已知角色
-	for cid in DataManager.characters:
-		var c = DataManager.characters[cid]
+	for cid in (dm.characters if dm else {}):
+		var c = dm.characters[cid]
 		result["characters"][cid] = {
 			"id": cid,
 			"name": c.get("name", cid),
 			"identity": c.get("identity", "登场人物"),
 			"voice_role": c.get("voice", deduce_voice_role(c.get("name", cid))),
-			"base_prompt": c.get("prompt", c.get("name", cid) + ", upper body portrait"),
+			"base_prompt": c.get("base_prompt", c.get("prompt", c.get("name", cid) + ", upper body portrait")),
+			"negative_prompt": c.get("negative_prompt", ""),
+			"character_sheet": c.get("character_sheet", {}),
+			"turnaround": null,
 			"sprites": [],
 			"voices": [],
 			"ready_count": 0,
@@ -655,6 +686,7 @@ static func get_entities_summary(items: Array) -> Dictionary:
 			"identity": "系统独白 / 叙事旁白",
 			"voice_role": "zh-CN-YunyangNeural",
 			"base_prompt": "narrator voice over",
+			"turnaround": null,
 			"sprites": [],
 			"voices": [],
 			"ready_count": 0,
@@ -662,8 +694,8 @@ static func get_entities_summary(items: Array) -> Dictionary:
 		}
 
 	# 预先从 DataManager 载入已知场景
-	for sc_id in DataManager.scenes:
-		var sc = DataManager.scenes[sc_id]
+	for sc_id in (dm.scenes if dm else {}):
+		var sc = dm.scenes[sc_id]
 		result["scenes"][sc_id] = {
 			"id": sc_id,
 			"name": sc.get("name", sc_id),
@@ -676,8 +708,8 @@ static func get_entities_summary(items: Array) -> Dictionary:
 		}
 
 	# 预先从 DataManager 载入已知线索
-	for clue_id in DataManager.clues:
-		var clue = DataManager.clues[clue_id]
+	for clue_id in (dm.clues if dm else {}):
+		var clue = dm.clues[clue_id]
 		result["clues"][clue_id] = {
 			"id": clue_id,
 			"name": clue.get("name", clue.get("title", clue_id)),
@@ -708,8 +740,8 @@ static func get_entities_summary(items: Array) -> Dictionary:
 				etype = "character"
 				var r = it.get("role", "")
 				if r.is_empty():
-					for cid in DataManager.characters:
-						var c = DataManager.characters[cid]
+					for cid in (dm.characters if dm else {}):
+						var c = dm.characters[cid]
 						if c.get("name", "") in iname or cid in iid:
 							r = c.get("name", "")
 							break
@@ -719,8 +751,8 @@ static func get_entities_summary(items: Array) -> Dictionary:
 				it["sub_type"] = "voice"
 			elif itype == "background":
 				etype = "scene"
-				for sid in DataManager.scenes:
-					var s = DataManager.scenes[sid]
+				for sid in (dm.scenes if dm else {}):
+					var s = dm.scenes[sid]
 					if s.get("name", "") in iname or sid in iid:
 						eid = sid
 						break
@@ -751,6 +783,7 @@ static func get_entities_summary(items: Array) -> Dictionary:
 					"identity": "角色",
 					"voice_role": it.get("voice_role", "zh-CN-XiaoxiaoNeural"),
 					"base_prompt": it.get("prompt", ""),
+					"turnaround": null,
 					"sprites": [],
 					"voices": [],
 					"ready_count": 0,
@@ -761,7 +794,9 @@ static func get_entities_summary(items: Array) -> Dictionary:
 			if is_ready:
 				c_obj["ready_count"] += 1
 
-			if it.get("sub_type", "") == "sprite" or it.get("type", "") == "character":
+			if it.get("sub_type", "") == "turnaround" or it.get("type", "") == "turnaround":
+				c_obj["turnaround"] = it
+			elif it.get("sub_type", "") == "sprite" or it.get("type", "") == "character":
 				c_obj["sprites"].append(it)
 			else:
 				c_obj["voices"].append(it)
@@ -818,13 +853,139 @@ static func get_entities_summary(items: Array) -> Dictionary:
 				sh_obj["ready_count"] += 1
 			sh_obj["items"].append(it)
 
+	# 检查并自动匹配角色的三视图概念文件 (Turnaround Sheet)
+	var pdir = _get_project_dir()
+	
+	for cid in result["characters"]:
+		if cid == "char_narrator":
+			continue
+		var c_obj = result["characters"][cid]
+		if c_obj.get("turnaround") == null:
+			var expected_rel = pdir + "assets/images/characters/char_%s_turnaround.png" % cid
+			var expected_abs = ProjectSettings.globalize_path(expected_rel)
+			var has_file = FileAccess.file_exists(expected_abs)
+			var sheet = c_obj.get("character_sheet", {})
+			var t_prompt = CharacterSheetMgr.assemble_three_view_prompt(sheet) if not sheet.is_empty() else "%s 全身三视图" % c_obj.get("name", cid)
+			var t_neg = CharacterSheetMgr.get_three_view_negative_prompt(sheet) if not sheet.is_empty() else CharacterSheetMgr.TURNAROUND_NEGATIVE
+			
+			c_obj["turnaround"] = {
+				"id": "char_%s_turnaround" % cid,
+				"name": "%s 全身三视图 (Turnaround)" % c_obj.get("name", cid),
+				"type": "turnaround",
+				"entity_type": "character",
+				"entity_id": cid,
+				"character_id": cid,
+				"sub_type": "turnaround",
+				"prompt": t_prompt,
+				"negative_prompt": t_neg,
+				"local_path": expected_rel,
+				"width": 1024,
+				"height": 576,
+				"status": "ready" if has_file else "pending"
+			}
+
 	return result
 
+# --- 从全身三视图智能裁切提取正视半身立绘作为形象基准 (Plan A 黄金工作流) ---
+static func extract_front_view_base_from_turnaround(turnaround_path: String, output_path: String) -> Dictionary:
+	var abs_t_path = ProjectSettings.globalize_path(turnaround_path)
+	if not FileAccess.file_exists(abs_t_path):
+		return {"success": false, "error": "三视图文件不存在: " + turnaround_path}
+	
+	var img = Image.load_from_file(abs_t_path)
+	if img == null or img.is_empty():
+		return {"success": false, "error": "无法载入三视图图像: " + turnaround_path}
+	
+	var w = img.get_width()
+	var h = img.get_height()
+	
+	# 正视图位于画布左侧约 42% 区域，扫描非白底/非透明的前景像素
+	var max_scan_x = int(w * 0.42)
+	var min_x = max_scan_x
+	var max_x = 0
+	var min_y = h
+	var max_y = 0
+	var fg_count = 0
+	
+	for y in range(h):
+		for x in range(max_scan_x):
+			var c = img.get_pixel(x, y)
+			var is_white = (c.r > 0.94 and c.g > 0.94 and c.b > 0.94)
+			if c.a > 0.1 and not is_white:
+				fg_count += 1
+				if x < min_x: min_x = x
+				if x > max_x: max_x = x
+				if y < min_y: min_y = y
+				if y > max_y: max_y = y
+	
+	if fg_count < 100:
+		# 兜底保底构图：以画布左侧 1/3 为黄金裁切区
+		min_x = int(w * 0.08)
+		max_x = int(w * 0.32)
+		min_y = int(h * 0.06)
+		max_y = int(h * 0.94)
+	
+	var center_x = int((min_x + max_x) / 2.0)
+	var total_char_h = max_y - min_y
+	
+	# 半身立绘（Waist-up）：从头顶至腰跨，约占全身高度的 62%
+	var crop_h = int(total_char_h * 0.62)
+	var headroom = int(total_char_h * 0.06)
+	var crop_top = max(0, min_y - headroom)
+	if crop_top + crop_h > h:
+		crop_h = h - crop_top
+	
+	# 严格 2:3 纵横比 (512x768)
+	var crop_w = int(crop_h * (2.0 / 3.0))
+	var crop_left = center_x - int(crop_w / 2.0)
+	if crop_left < 0:
+		crop_left = 0
+	if crop_left + crop_w > w:
+		crop_left = w - crop_w
+	
+	var crop_rect = Rect2i(crop_left, crop_top, crop_w, crop_h)
+	var cropped_img = img.get_region(crop_rect)
+	cropped_img.resize(512, 768, Image.INTERPOLATE_LANCZOS)
+	
+	var abs_out = ProjectSettings.globalize_path(output_path)
+	var err = cropped_img.save_png(abs_out)
+	if err != OK:
+		return {"success": false, "error": "保存裁切半身立绘失败: %d" % err}
+	
+	# 自动执行 u2net 深度透明去背，使提取出的半身基准具备透明通道
+	remove_image_background(abs_out)
+	
+	return {
+		"success": true,
+		"crop_rect": crop_rect,
+		"output_path": output_path,
+		"abs_output_path": abs_out
+	}
+
+static func remove_image_background(image_path: String) -> Dictionary:
+	var abs_path = ProjectSettings.globalize_path(image_path)
+	if not FileAccess.file_exists(abs_path):
+		return {"success": false, "error": "文件不存在: " + abs_path}
+	
+	var py = get_python_executable()
+	var bridge_script = ProjectSettings.globalize_path("res://tools/ai_bridge.py")
+	var args = [
+		bridge_script, "remove_background",
+		"--image", abs_path,
+		"--save", abs_path
+	]
+	var output = []
+	var exit_code = OS.execute(py, args, output, true)
+	if exit_code != OK:
+		return {"success": false, "error": "透明抠图失败: %s" % "\n".join(output)}
+	return {"success": true, "path": abs_path}
+
 static func deduce_voice_role(speaker: String) -> String:
-	if DataManager.characters.has(speaker) and DataManager.characters[speaker].has("voice"):
-		return DataManager.characters[speaker]["voice"]
-	for cid in DataManager.characters:
-		var c = DataManager.characters[cid]
+	var dm = _get_data_manager()
+	if dm and dm.characters.has(speaker) and dm.characters[speaker].has("voice"):
+		return dm.characters[speaker]["voice"]
+	for cid in (dm.characters if dm else {}):
+		var c = dm.characters[cid]
 		if c.get("name", "") == speaker and c.has("voice"):
 			return c["voice"]
 	if speaker == "旁白":
@@ -861,7 +1022,7 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 	DirAccess.make_dir_recursive_absolute(abs_save_path.get_base_dir())
 	var bridge_script = ProjectSettings.globalize_path("res://tools/ai_bridge.py")
 	
-	if item_type in ["background", "character", "clue"]:
+	if item_type in ["background", "character", "clue", "turnaround"] or item.get("sub_type", "") == "turnaround":
 		var host = settings.get("comfyui_server", "http://127.0.0.1:8188")
 		var user = settings.get("comfyui_user", "")
 		var password = settings.get("comfyui_password", "")
@@ -880,10 +1041,11 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 		var args: Array = []
 		
 		var is_anima = ckpt.to_lower().contains("anima")
+		var is_nunchaku = ckpt.to_lower().contains("nunchaku") or ckpt.to_lower().contains("qwen")
 		
 		if item_type == "background":
 			# 场景背景模式：绝对封杀人物，注入广角空间透视与空镜氛围
-			if is_anima:
+			if is_nunchaku or is_anima:
 				var bg_prefix = "高质量场景概念设计插画，大广角室内建筑透视，空镜，无人物，"
 				final_prompt = bg_prefix + item_prompt + "，" + global_style
 				final_neg = "人物，单人，少女，少年，面部，低质量，模糊，" + final_neg
@@ -909,21 +1071,23 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 			# 角色立绘双通道架构：【模式 A：纯微表情差分 (面部专注+骨相锁定)】 vs 【模式 B：3D 姿态全身生成 (姿态前置+解除身体锁定)】
 			var cid = item.get("character_id", item.get("entity_id", ""))
 			var char_data = {}
-			if DataManager.characters.has(cid):
-				char_data = DataManager.characters[cid]
-			elif ProjectContext.active_project_data.has("characters") and ProjectContext.active_project_data["characters"].has(cid):
-				char_data = ProjectContext.active_project_data["characters"][cid]
+			var pctx = _get_project_context()
+			var dm = _get_data_manager()
+			if dm and dm.characters.has(cid):
+				char_data = dm.characters[cid]
+			elif pctx and pctx.active_project_data.has("characters") and pctx.active_project_data["characters"].has(cid):
+				char_data = pctx.active_project_data["characters"][cid]
 			
 			var char_base_dna = char_data.get("base_prompt", "")
 			if char_base_dna.is_empty():
 				char_base_dna = char_data.get("prompt", "")
 
 			var is_male = item_prompt.contains("男") or item_prompt.contains("boy") or item_prompt.contains("he") or item.get("name", "").contains("沈策") or item.get("name", "").contains("温寻") or cid.contains("shen_ce") or cid.contains("wen_xun")
-			var gender_prefix = "单人男性，1boy, " if is_male else ""
-			var gender_neg = "女性，少女，女，(female:1.6), (1girl:1.6), (woman:1.6), " if is_male else ""
-			var ui_neg = "对话框，台词框，气泡框，对话气泡，文字，字幕，台词，下方字幕，文本，英文字母，日文字符，中文字，水印，logo，边框，黑边，分镜框，乱码，(dialogue box:2.0), (speech bubble:2.0), (text:2.0), (subtitles:2.0), (caption:2.0), (textbox:2.0), (message box:2.0), (watermark:2.0), (letters:1.9), (chinese text:1.9), (japanese text:1.9), (bottom text:1.9), (movie bar:1.9), (black bar:1.9), (comic frame:1.8), (border:1.8), "
-			var anti_light_neg = "(cinematic lighting:1.8), (dramatic lighting:1.8), (harsh shadows:1.8), (strong drop shadows:1.8), (colored rim light:1.7), (glow:1.6), (ambient color cast:1.7), (purple lighting:1.7), (blue lighting:1.7), (high contrast:1.6), "
-			var anti_dup_neg = "(duplicate:2.0), (multiple views:2.0), (stacked bodies:2.0), (two people:2.0), (two characters:2.0), (extra head:2.0), (two heads:2.0), (second head:2.0), (split screen:2.0), (comic panel:1.9), (clones:1.9), (extra arms:1.8), (extra body:1.9), (mini character:1.9), "
+			var gender_prefix = "单人男性，" if is_male else "单人女性，"
+			var gender_neg = "女性，少女，女人，" if is_male else "男性，少年，男人，胡子，胡茬，"
+			var ui_neg = "对话框，台词框，气泡框，对话气泡，文字，字幕，台词，下方字幕，文本，英文字母，日文字符，中文字，水印，logo，边框，黑边，分镜框，乱码，"
+			var anti_light_neg = "剧场暗调光影，强烈阴影，深重投影，彩色轮廓光，刺眼高光，严重偏色，高对比度，"
+			var anti_dup_neg = "多重视图，多张重叠，两人同框，双人，两个角色，多余脑袋，双头，分屏，连环画分镜，多余手臂，多余躯体，小人，"
 
 			# 剔除角色立绘中造成色温偏色与字幕残留的光影关键词，采用平涂赛璐珞与服装原色保真
 			var clean_char_style = global_style
@@ -943,7 +1107,8 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 				if FileAccess.file_exists(abs_p):
 					base_sprite_path = abs_p
 			
-			if base_sprite_path.is_empty() and not item.get("is_base", false):
+			var is_base_item = item.get("is_base", false) or item.get("id", "") == cid or item.get("id", "") == "char_" + cid or item.get("generation_mode", "") == "base"
+			if base_sprite_path.is_empty() and not is_base_item:
 				var cid_find = cid
 				var m_items = load_manifest()
 				var candidate_base = ""
@@ -980,8 +1145,104 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 			w = 512
 			h = 768
 			is_trans = 1
+			var has_glasses = char_base_dna.contains("眼镜") or char_base_dna.to_lower().contains("glasses") or item_prompt.contains("眼镜") or cid.contains("shen_ce")
 
-			if is_pose_mode:
+			if is_nunchaku:
+				if not base_sprite_path.is_empty() and not is_pose_mode:
+					# --- 【Qwen-Image / Nunchaku 多模态指令级微表情差分 (全中文纯净指令)】 ---
+					var expr_clean = item_prompt.strip_edges()
+					var gender_word = "他" if is_male else "她"
+					var gender_en = "his" if is_male else "her"
+					var char_name = char_data.get("name", cid)
+					var accessory_rule = "严格保持原图眼镜、服装与发型一致" if has_glasses else "严格保持原图服装与发型完全一致，脸上绝对不戴眼镜，无眼镜，无镜片，无镜框"
+					
+					var tpls = settings.get("prompt_templates", {})
+					var diff_tpl = str(tpls.get("diff_template", ""))
+					if diff_tpl.is_empty():
+						diff_tpl = "将图1中角色的面部表情修改为：{expression}。重点调整眉毛、眼神与嘴角微表情，神态自然生动；严格保持{name}原本的年轻动漫脸型与细腻平滑肌肤，绝对禁止衰老褶皱、法令纹与眼袋；保持镜头机位、半身构图、动作姿态与发型服装完全一致，{accessory_rule}。"
+					
+					if item.has("qwen_diff_prompt") and not str(item.get("qwen_diff_prompt", "")).is_empty():
+						final_prompt = str(item.get("qwen_diff_prompt"))
+					else:
+						# 角色属性自适应指令母版：支持用户在 UI 自定义模板并自动替换变量插槽
+						final_prompt = diff_tpl.replace("{expression}", expr_clean)\
+							.replace("{name}", char_name)\
+							.replace("{gender_word}", gender_word)\
+							.replace("{gender_en}", gender_en)\
+							.replace("{accessory_rule}", accessory_rule)
+					
+					final_neg = "表情毫无变化，平静无神，面无表情，原样不变，与图1完全相同的表情，低质量，最差画质，模糊，粗糙，衰老，褶皱，老年，苍老，成熟脸，法令纹，笑纹，眼袋，鱼尾纹，深纹，粗糙皮肤毛孔，皮肤下垂，丑陋，衰朽"
+					if not has_glasses:
+						final_neg += "，眼镜，镜片，镜框，墨镜，太阳镜，单片镜，圆眼镜"
+					if expr_clean.find("严厉") != -1 or expr_clean.find("质询") != -1 or expr_clean.find("愤怒") != -1 or expr_clean.find("严肃") != -1 or expr_clean.find("冷") != -1:
+						final_neg += "，微笑，欢快，温和，高兴"
+					elif expr_clean.find("笑") != -1 or expr_clean.find("开心") != -1 or expr_clean.find("喜") != -1:
+						final_neg += "，愤怒，皱眉，严厉，哭泣，悲伤"
+					args = [
+						bridge_script, "generate_image",
+						"--host", host,
+						"--ckpt", ckpt,
+						"--prompt", final_prompt,
+						"--negative", final_neg,
+						"--width", str(w),
+						"--height", str(h),
+						"--steps", "20",
+						"--cfg", "2.5",
+						"--timeout", "300",
+						"--transparent", str(is_trans),
+						"--save", abs_save_path,
+						"--base_image", base_sprite_path,
+						"--inpaint_face", "1"
+					]
+					print("[AIAssetMgr] 启动 Nunchaku Qwen-Image 指令级表情差分: %s (基准图: %s)" % [expr_clean, base_sprite_path])
+				else:
+					# 独立单人立绘生成 (基准立绘创建或姿态模式)
+					# --- 统一世界观身高比例定标计算 (确保180cm与160cm在同画布保持真实身高差) ---
+					var tpls = settings.get("prompt_templates", {})
+					var scale_enabled = tpls.get("scale_anchor_enabled", true)
+					var scale_phrase = ""
+					if scale_enabled:
+						var char_h_num = 175
+						var h_raw = str(char_data.get("height", "")).to_lower()
+						if h_raw.is_empty():
+							h_raw = str(char_base_dna).to_lower()
+						var regex = RegEx.new()
+						regex.compile("(\\d{3})\\s*cm")
+						var m = regex.search(h_raw)
+						if m:
+							char_h_num = int(m.get_string(1))
+						
+						if char_h_num >= 180:
+							scale_phrase = str(tpls.get("scale_rule_tall", "(高大挺拔身形:1.25), (人物脚底紧贴画面底边基准线:1.3), (头顶逼近画面上方, 顶部仅留8%微小留白:1.2), 180厘米以上身形画框比例"))
+						elif char_h_num <= 165:
+							scale_phrase = str(tpls.get("scale_rule_petite", "(娇小低矮身形:1.3), (人物脚底紧贴画面底边基准线:1.3), (头顶保留24%大面积空旷留白:1.3), 160厘米娇小身形画框比例"))
+						else:
+							scale_phrase = str(tpls.get("scale_rule_medium", "(标准匀称身形:1.1), (人物脚底紧贴画面底边基准线:1.3), (头顶适度留白15%:1.1), 170厘米标准身形画框比例"))
+					
+					final_prompt = "(单人:1.5), 独立单人二次元立绘，纯白背景，" + item_prompt + "，" + char_base_dna + "，" + clean_char_style
+					if not scale_phrase.is_empty():
+						final_prompt += "，" + scale_phrase
+					final_neg = anti_dup_neg + anti_light_neg + gender_neg + ui_neg + "衰老，褶皱，老年，苍老，成熟脸，法令纹，眼袋，鱼尾纹，粗糙毛孔，皮肤下垂，丑陋，复杂背景，多余肢体，低质量，模糊"
+					if not has_glasses:
+						final_neg += "，眼镜，镜片，镜框，墨镜"
+					args = [
+						bridge_script, "generate_image",
+						"--host", host,
+						"--ckpt", ckpt,
+						"--prompt", final_prompt,
+						"--negative", final_neg,
+						"--width", str(w),
+						"--height", str(h),
+						"--steps", "20",
+						"--cfg", "3.5",
+						"--timeout", "300",
+						"--transparent", str(is_trans),
+						"--save", abs_save_path
+					]
+					if not base_sprite_path.is_empty():
+						args.append_array(["--base_image", base_sprite_path])
+					print("[AIAssetMgr] 启动 Nunchaku Qwen-Image 角色立绘生成: %s" % item.get("name", ""))
+			elif is_pose_mode:
 				# --- 【模式 B：3D 姿态全新全身立绘生成】 ---
 				var pose_prompt_zh = ""
 				var pose_prompt_en = ""
@@ -1059,7 +1320,7 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 
 		elif item_type == "clue":
 			# 物证特写模式：孤立微距实物特写与透明抠图
-			if is_anima:
+			if is_nunchaku or is_anima:
 				var clue_prefix = "纯白背景，单个物品特写，静物微距，"
 				final_prompt = clue_prefix + item_prompt + "，" + global_style
 				final_neg = "人物，复杂背景，多余杂物，低质量，" + global_neg
@@ -1081,6 +1342,67 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 				"--transparent", str(is_trans),
 				"--save", abs_save_path
 			]
+		elif item_type == "turnaround" or item.get("sub_type", "") == "turnaround":
+			# 角色形象三视图 (支持 512x768 独立单视图 front/side/back 与 1024x576 全景概念母本)
+			var cid = item.get("character_id", item.get("entity_id", ""))
+			var char_data = {}
+			var pctx = _get_project_context()
+			var dm = _get_data_manager()
+			if dm and dm.characters.has(cid):
+				char_data = dm.characters[cid]
+			elif pctx and pctx.active_project_data.has("characters") and pctx.active_project_data["characters"].has(cid):
+				char_data = pctx.active_project_data["characters"][cid]
+			
+			var c_sheet = char_data.get("character_sheet", {})
+			if c_sheet.is_empty():
+				c_sheet = CharacterSheetMgr.create_default_sheet(char_data.get("name", cid), "男", 24)
+			
+			var view_type = item.get("view_type", "")
+			if not view_type.is_empty() and view_type in ["front", "side", "back"]:
+				# 独立高精单视图 (正面/侧面/背面，512x768 原生商业AVG插画)
+				w = 512
+				h = 768
+				final_prompt = item_prompt
+				if final_prompt.is_empty():
+					final_prompt = CharacterSheetMgr.assemble_view_prompt(c_sheet, view_type)
+				if not global_style.is_empty():
+					final_prompt += "，" + global_style
+				final_neg = item_neg
+				if final_neg.is_empty():
+					final_neg = CharacterSheetMgr.get_three_view_negative_prompt(c_sheet, view_type)
+				elif view_type == "back" and not final_neg.contains("露出面部"):
+					final_neg += "，(正面:1.7)，(半侧面:1.6)，(侧面:1.6)，(回头:1.7)，(回眸:1.7)，(扭头:1.6)，(露出面部:1.7)，(正脸:1.7)，(侧脸:1.6)，眼睛，瞳孔，眉毛，鼻子，嘴巴，嘴唇，前襟领带，胸口，胸部，正面视角，侧视，facing camera, looking back, looking at viewer, profile, side view, 3/4 view, turn around, looking over shoulder, face visible"
+			else:
+				# 1024x576 全景三视图概念母本
+				w = 1024
+				h = 576
+				final_prompt = item_prompt
+				if final_prompt.is_empty():
+					final_prompt = CharacterSheetMgr.assemble_three_view_prompt(c_sheet)
+				if not global_style.is_empty():
+					final_prompt += "，" + global_style
+				final_neg = item_neg
+				if final_neg.is_empty():
+					final_neg = CharacterSheetMgr.get_three_view_negative_prompt(c_sheet, view_type)
+				elif view_type == "back" and not final_neg.contains("露出面部"):
+					final_neg += "，(正面:1.7)，(半侧面:1.6)，(侧面:1.6)，(回头:1.7)，(回眸:1.7)，(扭头:1.6)，(露出面部:1.7)，(正脸:1.7)，(侧脸:1.6)，眼睛，瞳孔，眉毛，鼻子，嘴巴，嘴唇，前襟领带，胸口，胸部，正面视角，侧视，facing camera, looking back, looking at viewer, profile, side view, 3/4 view, turn around, looking over shoulder, face visible"
+			
+			if not view_type.is_empty() and view_type in ["front", "side", "back"]:
+				is_trans = 1 # 独立三视图立绘自动生成透明通道，方便直接作为舞台立绘与形象基准
+			else:
+				is_trans = 0 # 16:9 全景概念母本保留白底设计图
+			args = [
+				bridge_script, "generate_image",
+				"--host", host,
+				"--ckpt", ckpt,
+				"--prompt", final_prompt,
+				"--negative", final_neg,
+				"--width", str(w),
+				"--height", str(h),
+				"--transparent", str(is_trans),
+				"--save", abs_save_path
+			]
+			print("[AIAssetMgr] 启动角色形象三视图生成: %s (%s) -> %s" % [item.get("name", ""), ("全景16:9" if view_type.is_empty() else view_type), abs_save_path])
 		else:
 			final_prompt = (item_prompt + "，" + global_style) if is_anima else (global_style + ", " + item_prompt)
 			args = [
@@ -1094,6 +1416,9 @@ static func generate_asset_item(item: Dictionary, settings: Dictionary, progress
 				"--transparent", str(is_trans),
 				"--save", abs_save_path
 			]
+
+		if is_nunchaku and (item_type != "character" or item.get("sub_type", "") == "turnaround"):
+			args.append_array(["--steps", "20", "--cfg", "3.5", "--timeout", "300"])
 
 		if item.get("seed", 0) > 0:
 			args.append_array(["--seed", str(item.get("seed"))])

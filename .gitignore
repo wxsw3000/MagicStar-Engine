@@ -28,6 +28,8 @@ bin/
 *.pck
 *.apk
 *.aab
+*.zip
+tools/ComfyUI-GGUF/
 
 # 5. 测试生成素材与深度学习大模型 (Test Samples & ONNX Models)
 samples/

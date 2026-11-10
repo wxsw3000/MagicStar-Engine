@@ -85,40 +85,38 @@ def create_adaptive_face_mask(base_pil, prompt=""):
     """
     方案 A：靶向五官分流自适应遮罩
     根据微表情提示词智能判断重绘焦点：
-    1. 嘴部主导（微笑/苦笑/冷笑/浅笑/张嘴/咬牙等）：仅重绘嘴部区域（y: 0.25~0.34, x: 0.40~0.60），双眼、眉毛、额头、鼻梁 100% 物理绝对冻结！
-    2. 眼眉主导（闭目/深思/眼神/目光/质询/震惊/警惕/戒备等）：仅重绘双眼与眉毛区域（y: 0.135~0.245, x: 0.33~0.67），嘴部、下颌、鼻梁 100% 物理绝对冻结！
-    3. 复合表情：精细包裹双眼与嘴部，平滑余弦衰减，绝不触碰发型外形与下巴领口。
+    1. 纯嘴部/口型专属（张嘴/说话口型等）：仅重绘嘴唇核心区（y: 0.25~0.34, x: 0.40~0.60），双眼、眉毛、额头 100% 物理绝对冻结！
+    2. 纯眼眉专属（闭目/眨眼等）：仅重绘双眼与眉毛区域（y: 0.125~0.250, x: 0.32~0.68），下颌、嘴唇 100% 物理绝对冻结！
+    3. 标准微表情全区（严厉质询/微笑/愤怒/深思/震惊等）：完整包裹面部五官（y: 0.125~0.340, x: 0.31~0.69），下巴边缘、发型轮廓、领口服饰 100% 物理锁定。
     """
     import numpy as np
     bw, bh = base_pil.size
     p_lower = str(prompt).lower()
     
-    mouth_kws = ["笑", "smile", "smirk", "grin", "嘴角", "mouth", "lip", "苦笑", "冷笑", "浅笑", "抿嘴", "张嘴", "咬牙", "叹息", "说话"]
-    eyes_kws = ["闭目", "闭眼", "眼神", "目光", "眉", "brow", "震惊", "瞪", "深思", "质询", "锐利", "眼眸", "瞳孔", "警惕", "戒备", "凝视", "closed eye", "glare"]
+    mouth_only_kws = ["张嘴", "说话", "口型", "说话口型", "open mouth", "speaking"]
+    eyes_only_kws = ["闭目", "闭眼", "眨眼", "closed eyes", "blink"]
     
-    has_mouth_kw = any(k in p_lower for k in mouth_kws)
-    has_eyes_kw = any(k in p_lower for k in eyes_kws)
+    is_mouth_only = any(k in p_lower for k in mouth_only_kws) and not any(k in p_lower for k in ["怒", "笑", "质询", "表情", "神色", "冷", "严厉", "悲", "喜", "严肃", "深思", "疑惑"])
+    is_eyes_only = any(k in p_lower for k in eyes_only_kws) and not any(k in p_lower for k in ["怒", "笑", "质询", "表情", "神色", "冷", "严厉", "悲", "喜", "严肃", "深思", "疑惑"])
     
     mask = Image.new("L", (bw, bh), 0)
     draw = ImageDraw.Draw(mask)
     
-    if has_mouth_kw and not has_eyes_kw:
+    if is_mouth_only:
         # 模式 1：纯嘴部/唇周微表情重绘 (双眼和眉骨 100% 锁定)
-        mouth_box = [int(bw * 0.41), int(bh * 0.255), int(bw * 0.59), int(bh * 0.335)]
+        mouth_box = [int(bw * 0.40), int(bh * 0.250), int(bw * 0.60), int(bh * 0.340)]
         draw.ellipse(mouth_box, fill=255)
         mask = mask.filter(ImageFilter.GaussianBlur(radius=8))
-    elif has_eyes_kw and not has_mouth_kw:
+    elif is_eyes_only:
         # 模式 2：纯眼眉/眼神微表情重绘 (嘴唇和下颌 100% 锁定)
-        eyes_box = [int(bw * 0.33), int(bh * 0.135), int(bw * 0.67), int(bh * 0.245)]
+        eyes_box = [int(bw * 0.32), int(bh * 0.125), int(bw * 0.68), int(bh * 0.250)]
         draw.ellipse(eyes_box, fill=255)
         mask = mask.filter(ImageFilter.GaussianBlur(radius=8))
     else:
-        # 模式 3：双眼与嘴部复合微表情重绘
-        eyes_box = [int(bw * 0.34), int(bh * 0.135), int(bw * 0.66), int(bh * 0.245)]
-        mouth_box = [int(bw * 0.41), int(bh * 0.255), int(bw * 0.59), int(bh * 0.335)]
-        draw.ellipse(eyes_box, fill=255)
-        draw.ellipse(mouth_box, fill=255)
-        mask = mask.filter(ImageFilter.GaussianBlur(radius=10))
+        # 模式 3：标准面部微表情全区重绘 (眉毛、眼眸、鼻梁、面颊、唇周连贯整体，保护下巴、耳朵、发型与服饰)
+        face_box = [int(bw * 0.31), int(bh * 0.125), int(bw * 0.69), int(bh * 0.340)]
+        draw.ellipse(face_box, fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(radius=12))
 
     # 平滑余弦边界防护：防止边界生硬突变
     m_arr = np.array(mask, dtype=np.float32)
@@ -179,8 +177,9 @@ def create_adaptive_pose_mask(base_pil, pose_preset=""):
 
 def harmonize_and_blend(gen_pil, base_pil, mask_pil):
     """
-    色彩与亮度智能协调 + S 曲线非线性平滑过渡融合 (彻底杜绝撕裂贴纸感与接缝失调)
-    保证遮罩外所有像素（服装、发型、脖子、轮廓）100% 绝对物理一致（MAE = 0.000）。
+    S 曲线非线性余弦平滑过渡融合 (Cosine Smoothstep)。
+    保证遮罩外所有像素（服装、发型、脖子、轮廓）100% 绝对物理一致（MAE = 0.000），
+    同时杜绝生硬贴纸边界与破坏性色偏。
     """
     try:
         import numpy as np
@@ -193,22 +192,6 @@ def harmonize_and_blend(gen_pil, base_pil, mask_pil):
         base_arr = np.array(base_rgba, dtype=np.float32)
         mask_arr = np.array(mask_pil, dtype=np.float32) / 255.0
         
-        # 提取过渡边缘环带 (0.05 < mask < 0.85) 计算基准图与生成图的色差分布
-        transition_zone = (mask_arr > 0.05) & (mask_arr < 0.85)
-        if np.sum(transition_zone) > 100:
-            for c in range(3): # R, G, B
-                b_vals = base_arr[..., c][transition_zone]
-                g_vals = gen_arr[..., c][transition_zone]
-                b_mean = np.mean(b_vals)
-                b_std = max(float(np.std(b_vals)), 1.0)
-                g_mean = np.mean(g_vals)
-                g_std = max(float(np.std(g_vals)), 1.0)
-                
-                scale = min(max(b_std / g_std, 0.75), 1.25)
-                gen_arr[..., c] = (gen_arr[..., c] - g_mean) * scale + b_mean
-                
-            gen_arr[..., :3] = np.clip(gen_arr[..., :3], 0, 255)
-            
         # 采用非线性余弦平滑过渡 (Cosine Smoothstep)，消除边界突变与马赫带效应
         smooth_mask = 0.5 - 0.5 * np.cos(np.pi * mask_arr)
         smooth_mask = np.expand_dims(smooth_mask, axis=-1)
@@ -219,6 +202,9 @@ def harmonize_and_blend(gen_pil, base_pil, mask_pil):
         zero_mask = (mask_arr <= 0.001)
         for c in range(4):
             blended_arr[..., c][zero_mask] = base_arr[..., c][zero_mask]
+
+        # 继承 Base 原图的 Alpha 透明边界，杜绝透明区发丝溢出杂色
+        blended_arr[..., 3] = base_arr[..., 3]
 
         blended_arr = np.clip(blended_arr, 0, 255).astype(np.uint8)
         return Image.fromarray(blended_arr, "RGBA")
@@ -253,10 +239,12 @@ def cmd_check_comfy(args):
             data_obj = json.loads(resp.read().decode("utf-8"))
             ckpts = data_obj.get("CheckpointLoaderSimple", {}).get("input", {}).get("required", {}).get("ckpt_name", [[]])[0]
             unets = data_obj.get("UNETLoader", {}).get("input", {}).get("required", {}).get("unet_name", [[]])[0]
+            nunchakus = data_obj.get("NunchakuQwenImageDiTLoader", {}).get("input", {}).get("required", {}).get("model_name", [[]])[0]
+            ggufs = data_obj.get("UnetLoaderGGUF", {}).get("input", {}).get("required", {}).get("unet_name", [[]])[0]
             all_models = list(ckpts)
-            for u in unets:
-                if u not in all_models:
-                    all_models.append(u)
+            for m in list(unets) + list(nunchakus) + list(ggufs):
+                if m not in all_models:
+                    all_models.append(m)
             result["checkpoints"] = all_models
             result["vaes"] = data_obj.get("VAELoader", {}).get("input", {}).get("required", {}).get("vae_name", [[]])[0]
             result["clips"] = data_obj.get("CLIPLoader", {}).get("input", {}).get("required", {}).get("clip_name", [[]])[0]
@@ -283,10 +271,25 @@ def cmd_generate_image(args):
     sampler = args.sampler
     scheduler = args.scheduler
     ckpt_lower = args.ckpt.lower()
+    is_nunchaku = ("nunchaku" in ckpt_lower or "qwen" in ckpt_lower)
+
+    target_width = args.width
+    target_height = args.height
+    gen_width = args.width
+    gen_height = args.height
+
+    if is_nunchaku and (target_width * target_height < 900000):
+        # Qwen-Image-Edit 内部强制以 1MP (1024x1024) 等面积缩放参考图生成潜空间。
+        # 若以 512x768 潜空间采样，模型会导致参考图与生成图尺寸错位，产生 1.63x 严重画幅放大与裁切！
+        # 因此以原生 1MP (832x1248) 比例对齐采样，生成完成后重采样回 target_width x target_height。
+        import math
+        scale_f = math.sqrt(1048576.0 / (target_width * target_height))
+        gen_width = int(round(target_width * scale_f / 32) * 32)
+        gen_height = int(round(target_height * scale_f / 32) * 32)
 
     # --- 角色一致性检测：是否启动基于 Base 立绘的 VNCCS 面部差分重绘 (Inpainting) 或 3D 姿态一致性重绘 ---
     base_image_path = getattr(args, "base_image", "") or ""
-    inpaint_face = getattr(args, "inpaint_face", 0)
+    inpaint_face = bool(getattr(args, "inpaint_face", 0))
     denoise_strength = getattr(args, "denoise", 0.72)
     is_inpaint_mode = False
     is_pose_consistent_mode = False
@@ -303,39 +306,60 @@ def cmd_generate_image(args):
         try:
             base_pil = Image.open(base_image_path).convert("RGBA")
             bw, bh = base_pil.size
+            pose_image_path = getattr(args, "pose_image", "") or ""
+            pose_preset = getattr(args, "pose_preset", "") or ""
+
             if inpaint_face:
                 # 模式 A: 纯微表情专注差分重绘 (仅面部重绘，身体 100% 冻结锁死)
                 report_progress(prog_file, "prep_inpaint", 10, "正在提取基准立绘并生成智能面部羽化 Mask...")
                 mask_pil = create_adaptive_face_mask(base_pil, getattr(args, "prompt", ""))
-                is_inpaint_mode = True
-            else:
+                # SDXL / Anima 使用局部潜空间 DifferentialDiffusion；Nunchaku 使用多模态视觉参考 + 后处理平滑融合
+                if not is_nunchaku:
+                    is_inpaint_mode = True
+            elif pose_image_path or pose_preset:
                 # 模式 B: 3D 姿态一致性重绘 (头部发型身份绝对锁定，下摆锁死杜绝叠人，躯干动作区高自由重绘)
-                pose_preset = getattr(args, "pose_preset", "") or ""
                 report_progress(prog_file, "prep_pose_mask", 10, "正在锁定基准角色面容发型身份，并构建 3D 动作区自适应重绘 Mask...")
                 mask_pil = create_adaptive_pose_mask(base_pil, pose_preset)
-                is_pose_consistent_mode = True
+                if not is_nunchaku:
+                    is_pose_consistent_mode = True
+            else:
+                # 模式 C: 独立全量参考生图 (全局视觉编码)
+                is_inpaint_mode = False
+                is_pose_consistent_mode = False
 
-            # 构造 ComfyUI 双兼容 Mask 图像 (RGB 与 Alpha 双通道映射)
-            # ComfyUI 的 LoadImage 节点中: mask = 1.0 - (alpha / 255.0)
-            mask_rgba = Image.new("RGBA", (bw, bh), (255, 255, 255, 255))
-            mask_data = list(mask_pil.get_flattened_data()) if hasattr(mask_pil, "get_flattened_data") else list(mask_pil.getdata())
-            new_rgba_data = []
-            for m_val in mask_data:
-                alpha_val = 255 - m_val
-                new_rgba_data.append((m_val, m_val, m_val, alpha_val))
-            mask_rgba.putdata(new_rgba_data)
+            import tempfile
+            temp_base_path = os.path.join(tempfile.gettempdir(), f"_avg_tmp_base_{seed}.png")
+            
+            # 若基准图含透明通道，合成到纯白底上传给多模态编码器，避免透明转黑导致深色发型与服装与背景混淆
+            if base_pil.mode == "RGBA":
+                upload_base_pil = Image.new("RGB", base_pil.size, (255, 255, 255))
+                upload_base_pil.paste(base_pil, mask=base_pil.split()[-1])
+            else:
+                upload_base_pil = base_pil.convert("RGB")
 
-            temp_base_path = os.path.join(os.path.dirname(save_path), f"_tmp_base_{seed}.png")
-            temp_mask_path = os.path.join(os.path.dirname(save_path), f"_tmp_mask_{seed}.png")
-            base_pil.save(temp_base_path, "PNG")
-            mask_rgba.save(temp_mask_path, "PNG")
+            # 保持多模态参考图与生成潜空间分辨率 1:1 精确锁定，杜绝 1.63x 缩放引起的画幅裁切与镜头推拉
+            if is_nunchaku and (upload_base_pil.size != (gen_width, gen_height)):
+                upload_base_pil = upload_base_pil.resize((gen_width, gen_height), Image.Resampling.LANCZOS)
 
-            stage_txt = "正在将基准立绘与面部 Mask 同步上传至算力节点..." if is_inpaint_mode else "正在同步上传基准角色图与 3D 姿态动作区重绘 Mask..."
+            upload_base_pil.save(temp_base_path, "PNG")
+
+            stage_txt = "正在将基准立绘与面部 Mask 同步上传至算力节点..." if is_inpaint_mode else ("正在同步上传基准角色图与 3D 姿态动作区重绘 Mask..." if is_pose_consistent_mode else "正在同步基准立绘至多模态视觉编码节点...")
             report_progress(prog_file, "upload_base", 15, stage_txt)
             upload_b = upload_image_to_comfy(base_url, temp_base_path, headers, ctx, f"avg_base_{seed}.png")
-            upload_m = upload_image_to_comfy(base_url, temp_mask_path, headers, ctx, f"avg_mask_{seed}.png")
             uploaded_base = upload_b.get("name", f"avg_base_{seed}.png")
-            uploaded_mask = upload_m.get("name", f"avg_mask_{seed}.png")
+
+            if mask_pil and (is_inpaint_mode or is_pose_consistent_mode):
+                mask_rgba = Image.new("RGBA", (bw, bh), (255, 255, 255, 255))
+                mask_data = list(mask_pil.get_flattened_data()) if hasattr(mask_pil, "get_flattened_data") else list(mask_pil.getdata())
+                new_rgba_data = []
+                for m_val in mask_data:
+                    alpha_val = 255 - m_val
+                    new_rgba_data.append((m_val, m_val, m_val, alpha_val))
+                mask_rgba.putdata(new_rgba_data)
+                temp_mask_path = os.path.join(tempfile.gettempdir(), f"_avg_tmp_mask_{seed}.png")
+                mask_rgba.save(temp_mask_path, "PNG")
+                upload_m = upload_image_to_comfy(base_url, temp_mask_path, headers, ctx, f"avg_mask_{seed}.png")
+                uploaded_mask = upload_m.get("name", f"avg_mask_{seed}.png")
         except Exception as e:
             is_inpaint_mode = False
             is_pose_consistent_mode = False
@@ -398,8 +422,204 @@ def cmd_generate_image(args):
         if "anima" in ckpt_lower:
             cfg = 2.0
             steps = 10
-    
-    if "anima" in ckpt_lower:
+
+    is_nunchaku = ("nunchaku" in ckpt_lower or "qwen" in ckpt_lower)
+
+    if is_nunchaku:
+        # Nunchaku Qwen-Image 2.1 INT4 模块化工作流
+        clip_name = "qwen_2.5_vl_7b_fp8_scaled.safetensors"
+        vae_name = "qwen_image_vae.safetensors"
+        try:
+            url_obj = f"{base_url}/object_info"
+            req_obj = urllib.request.Request(url_obj, headers=headers)
+            with urllib.request.urlopen(req_obj, context=ctx, timeout=6) as resp_obj:
+                d_obj = json.loads(resp_obj.read().decode("utf-8"))
+                avail_clips = d_obj.get("CLIPLoader", {}).get("input", {}).get("required", {}).get("clip_name", [[]])[0]
+                if args.ckpt.endswith(".gguf"):
+                    for c in avail_clips:
+                        if "qwen3vl" in c.lower() or "qwen3" in c.lower():
+                            clip_name = c
+                            break
+                if not clip_name or clip_name == "qwen_2.5_vl_7b_fp8_scaled.safetensors":
+                    for c in avail_clips:
+                        if "qwen" in c.lower() or "vl" in c.lower():
+                            clip_name = c
+                            break
+                avail_vaes = d_obj.get("VAELoader", {}).get("input", {}).get("required", {}).get("vae_name", [[]])[0]
+                if args.ckpt.endswith(".gguf"):
+                    for v in avail_vaes:
+                        if "2.1" in v.lower() or "bf16" in v.lower():
+                            vae_name = v
+                            break
+                if not vae_name:
+                    for v in avail_vaes:
+                        if "qwen_image_vae" in v.lower():
+                            vae_name = v
+                            break
+                if not vae_name:
+                    for v in avail_vaes:
+                        if "qwen" in v.lower():
+                            vae_name = v
+                            break
+        except Exception:
+            pass
+
+        if steps >= 28 or steps <= 0:
+            steps = 20
+        if cfg >= 6.0 or cfg <= 0:
+            cfg = 3.5
+        sampler = "euler"
+        scheduler = "simple"
+
+        workflow = {
+            "2": {
+                "class_type": "CLIPLoader",
+                "inputs": {
+                    "clip_name": clip_name,
+                    "type": "qwen_image"
+                }
+            },
+            "3": {
+                "class_type": "VAELoader",
+                "inputs": {
+                    "vae_name": vae_name
+                }
+            },
+            "5": {
+                "class_type": "CLIPTextEncode",
+                "inputs": {
+                    "clip": ["2", 0],
+                    "text": args.negative
+                }
+            },
+            "6": {
+                "class_type": "EmptyLatentImage",
+                "inputs": {
+                    "batch_size": 1,
+                    "height": gen_height,
+                    "width": gen_width
+                }
+            }
+        }
+
+        if args.ckpt.endswith(".gguf"):
+            workflow["1"] = {
+                "class_type": "UnetLoaderGGUF",
+                "inputs": {"unet_name": args.ckpt}
+            }
+            workflow["cache"] = {
+                "class_type": "QwenImage21Cache",
+                "inputs": {"model": ["1", 0], "device": "auto", "dtype": "int8"}
+            }
+            dit_ref = ["cache", 0]
+        else:
+            workflow["1"] = {
+                "class_type": "NunchakuQwenImageDiTLoader",
+                "inputs": {"model_name": args.ckpt, "cpu_offload": "auto"}
+            }
+            dit_ref = ["1", 0]
+
+        if args.ckpt.endswith(".gguf"):
+            # Qwen-Image-2.1 原生多模态指令差分编码器 (产出 64 通道专用 Latent 与 Conditionings)
+            q_res = max(gen_width, gen_height)
+            if q_res % 32 != 0:
+                q_res = ((q_res // 32) + 1) * 32
+            enc_inputs = {
+                "clip": ["2", 0],
+                "prompt": args.prompt,
+                "negative_prompt": getattr(args, "negative", "") or "ugly, deformed, mutated, extra fingers, disfigured, blurry, low quality, changed clothes, changed hairstyle",
+                "resolution": q_res,
+                "vae": ["3", 0]
+            }
+            if uploaded_base:
+                workflow["10"] = {
+                    "class_type": "LoadImage",
+                    "inputs": {
+                        "image": uploaded_base
+                    }
+                }
+                enc_inputs["images.image_1"] = ["10", 0]
+
+            workflow["4"] = {
+                "class_type": "TextEncodeQwenImage21",
+                "inputs": enc_inputs
+            }
+            pos_cond = ["4", 0]
+            neg_cond = ["4", 1]
+            latent_in = ["4", 2]
+        elif uploaded_base:
+            workflow["10"] = {
+                "class_type": "LoadImage",
+                "inputs": {
+                    "image": uploaded_base
+                }
+            }
+            # 使用 TextEncodeQwenImageEditPlus 节点接收多模态参考底图与 VAE 潜空间特征
+            workflow["4"] = {
+                "class_type": "TextEncodeQwenImageEditPlus",
+                "inputs": {
+                    "clip": ["2", 0],
+                    "prompt": args.prompt,
+                    "vae": ["3", 0],
+                    "image1": ["10", 0]
+                }
+            }
+            # 负向引导同样绑定参考底图与反向提示词，实现差分向量精准指向新表情并杜绝色偏相减失真
+            neg_text = getattr(args, "negative", "") or "calm, relaxed, neutral, emotionless expression in image 1"
+            workflow["5"] = {
+                "class_type": "TextEncodeQwenImageEditPlus",
+                "inputs": {
+                    "clip": ["2", 0],
+                    "prompt": neg_text,
+                    "vae": ["3", 0],
+                    "image1": ["10", 0]
+                }
+            }
+            pos_cond = ["4", 0]
+            neg_cond = ["5", 0]
+            latent_in = ["6", 0]
+        else:
+            workflow["4"] = {
+                "class_type": "CLIPTextEncode",
+                "inputs": {
+                    "clip": ["2", 0],
+                    "text": args.prompt
+                }
+            }
+            pos_cond = ["4", 0]
+            neg_cond = ["5", 0]
+            latent_in = ["6", 0]
+
+        workflow["7"] = {
+            "class_type": "KSampler",
+            "inputs": {
+                "cfg": cfg,
+                "denoise": 1.0,
+                "latent_image": latent_in,
+                "model": dit_ref,
+                "negative": neg_cond,
+                "positive": pos_cond,
+                "sampler_name": sampler,
+                "scheduler": scheduler,
+                "seed": seed,
+                "steps": steps
+            }
+        }
+        workflow["8"] = {
+            "class_type": "VAEDecode",
+            "inputs": {
+                "samples": ["7", 0],
+                "vae": ["3", 0]
+            }
+        }
+        workflow["9"] = {
+            "class_type": "SaveImage",
+            "inputs": {
+                "filename_prefix": "AVG_Gen",
+                "images": ["8", 0]
+            }
+        }
+    elif "anima" in ckpt_lower:
         sampler = "euler"
         scheduler = "sgm_uniform"
         
@@ -704,14 +924,16 @@ def cmd_generate_image(args):
 
         # 轮询等待生成完成
         start_time = time.time()
-        timeout = args.timeout
+        timeout = max(args.timeout, 360) if is_nunchaku else args.timeout
         found = False
+        expected_time = (steps * 8.2) if is_nunchaku else (20.0 if "anima" in ckpt_lower else 40.0)
         
         while time.time() - start_time < timeout:
             time.sleep(0.8)
             elapsed = time.time() - start_time
-            simulated_pct = min(80, 25 + int(elapsed * 5.5))
-            report_progress(prog_file, "sampling", simulated_pct, f"扩散模型采样推理中... ({elapsed:.1f}s)")
+            simulated_pct = min(80, 25 + int((elapsed / max(expected_time, 1.0)) * 55))
+            m_desc = "Nunchaku Qwen-Image 采样中..." if is_nunchaku else "扩散模型采样推理中..."
+            report_progress(prog_file, "sampling", simulated_pct, f"{m_desc} ({elapsed:.1f}s / ~{int(expected_time)}s)")
 
             try:
                 h_url = f"{base_url}/history/{prompt_id}"
@@ -719,7 +941,19 @@ def cmd_generate_image(args):
                 with urllib.request.urlopen(req_h, context=ctx, timeout=6) as h_resp:
                     h_data = json.loads(h_resp.read().decode("utf-8"))
                     if prompt_id in h_data:
-                        outputs = h_data[prompt_id].get("outputs", {})
+                        item = h_data[prompt_id]
+                        status = item.get("status", {})
+                        if status.get("status_str") == "error":
+                            err_msg = "ComfyUI 推理执行出错"
+                            msgs = status.get("messages", [])
+                            for m in msgs:
+                                if len(m) > 1 and isinstance(m[1], dict) and "exception_message" in m[1]:
+                                    err_msg = f"[{m[1].get('node_type', '')}] {m[1].get('exception_message', '')}"
+                            report_progress(prog_file, "error", 0, f"❌ {err_msg}")
+                            print(json.dumps({"success": False, "error": err_msg}, ensure_ascii=False))
+                            return
+
+                        outputs = item.get("outputs", {})
                         if "9" in outputs and "images" in outputs["9"]:
                             img_info = outputs["9"]["images"][0]
                             filename = img_info["filename"]
@@ -741,17 +975,60 @@ def cmd_generate_image(args):
             print(json.dumps({"success": False, "error": f"生成超时（超过 {timeout} 秒）"}))
             return
 
+        # 若使用了 Nunchaku 1MP 原生潜空间等比扩展采样，生成完毕后以 Lanczos 算法重采样恢复至引擎目标规格
+        if is_nunchaku and os.path.exists(save_path):
+            try:
+                g_img = Image.open(save_path)
+                if g_img.size != (target_width, target_height):
+                    g_img = g_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+                    g_img.save(save_path, "PNG")
+            except Exception:
+                pass
+
         # 若要求透明立绘通道处理
         if args.transparent:
             report_progress(prog_file, "rembg", 88, "正在执行 u2net 深度透明抠图与发丝羽化...")
             processed = False
             try:
                 import rembg
+                import io
+                import numpy as np
                 with open(save_path, 'rb') as i_f:
                     input_bytes = i_f.read()
                 out_bytes = rembg.remove(input_bytes)
-                with open(save_path, 'wb') as o_f:
-                    o_f.write(out_bytes)
+                
+                # 针对二次元 AVG 立绘边缘与背景半透明残留“污渍/噪点”进行纯净去雾与二值边缘羽化
+                rb_im = Image.open(io.BytesIO(out_bytes)).convert("RGBA")
+                arr = np.array(rb_im)
+                alpha = arr[:, :, 3].astype(np.float32)
+                
+                # 剔除背景低不透明度残影与雾化噪点 (< 50 强制置 0)
+                # 强化角色主体不透明度 (> 210 饱和为 255)
+                # 介于 50..210 平滑拉伸，保持自然发丝抗锯齿
+                new_alpha = np.zeros_like(alpha)
+                high_mask = alpha >= 210.0
+                new_alpha[high_mask] = 255.0
+                mid_mask = (alpha >= 50.0) & (alpha < 210.0)
+                new_alpha[mid_mask] = (alpha[mid_mask] - 50.0) / (210.0 - 50.0) * 255.0
+                
+                # 剔除游离孤岛微小杂质颗粒 (面积 < 80 像素的噪点)
+                try:
+                    from scipy import ndimage
+                    labeled, num_features = ndimage.label(new_alpha > 0)
+                    if num_features > 1:
+                        sizes = ndimage.sum(new_alpha > 0, labeled, range(num_features + 1))
+                        small_comps = np.where(sizes < 80)[0]
+                        for c_id in small_comps:
+                            new_alpha[labeled == c_id] = 0.0
+                except Exception:
+                    pass
+                
+                arr[:, :, 3] = np.clip(new_alpha, 0, 255).astype(np.uint8)
+                # 将全透明像素的 RGB 归零，杜绝贴图过滤时的白边/黑边杂色
+                arr[arr[:, :, 3] == 0] = [0, 0, 0, 0]
+                
+                clean_img = Image.fromarray(arr)
+                clean_img.save(save_path, "PNG")
                 processed = True
             except Exception:
                 pass
@@ -775,16 +1052,34 @@ def cmd_generate_image(args):
                 except Exception:
                     pass
 
-        # 若是面部差分重绘模式，将新生成的面部表情与 Base 原图执行色彩协调与余弦平滑过渡融合
-        # 从而 100% 保持身材、服装、发型轮廓像素级不变，同时杜绝贴纸生硬感
-        if is_inpaint_mode and base_pil and mask_pil:
+            # Nunchaku 生成的角色立绘垂直轮廓自适应锚定对齐 (对齐 Base 原图头部留白边界)
+            if is_nunchaku and base_pil:
+                try:
+                    import numpy as np
+                    gen_im = Image.open(save_path).convert("RGBA")
+                    g_alpha = np.array(gen_im)[:, :, 3]
+                    b_alpha = np.array(base_pil)[:, :, 3]
+                    gy = np.where(g_alpha > 50)[0]
+                    by = np.where(b_alpha > 50)[0]
+                    if len(gy) and len(by):
+                        dy = by[0] - gy[0]
+                        if -40 <= dy <= 40 and dy != 0:
+                            shifted = Image.new("RGBA", gen_im.size, (0, 0, 0, 0))
+                            shifted.paste(gen_im, (0, dy))
+                            shifted.save(save_path, "PNG")
+                except Exception:
+                    pass
+
+        # 若开启了面部重绘模式 (inpaint_face=1)，将新生成的面部表情与 Base 原图执行色彩协调与余弦平滑过渡融合
+        # 从而 100% 保持身材、服装、发型轮廓像素级不变（MAE=0.000），消除色偏斑迹与贴纸撕裂感
+        if inpaint_face and base_pil and mask_pil:
             report_progress(prog_file, "composite", 92, "正在执行自然色调协调与余弦无缝过渡融合...")
             try:
                 gen_img = Image.open(save_path).convert("RGBA")
                 composite_img = harmonize_and_blend(gen_img, base_pil, mask_pil)
                 composite_img.save(save_path, "PNG")
-            except Exception:
-                pass
+            except Exception as e:
+                print(f"[AI Bridge] harmonize_and_blend failed: {e}")
 
         # 若是 3D 姿态一致性重绘模式，将新生成的服装区域色彩分布对齐基准图，彻底抹除戏剧光影与色温偏色
         # 注意：精准识别并排除人体手部/面部皮肤像素，绝不能把手部肤色错当成风衣调成死灰
@@ -918,6 +1213,75 @@ def cmd_generate_voice(args):
         report_progress(prog_file, "error", 0, f"❌ 配音失败: {str(e)}")
         print(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False))
 
+def cmd_remove_background(args):
+    img_path = args.image
+    save_path = args.save if args.save else img_path
+    prog_file = args.progress_file
+    
+    if not os.path.exists(img_path):
+        print(json.dumps({"success": False, "error": f"Image file not found: {img_path}"}, ensure_ascii=False))
+        sys.exit(1)
+        
+    report_progress(prog_file, "rembg", 20, "正在执行 u2net 深度透明抠图与发丝羽化...")
+    processed = False
+    try:
+        import rembg
+        import io
+        import numpy as np
+        with open(img_path, 'rb') as i_f:
+            input_bytes = i_f.read()
+        out_bytes = rembg.remove(input_bytes)
+        
+        rb_im = Image.open(io.BytesIO(out_bytes)).convert("RGBA")
+        arr = np.array(rb_im)
+        alpha = arr[:, :, 3].astype(np.float32)
+        
+        new_alpha = np.zeros_like(alpha)
+        high_mask = alpha >= 210.0
+        new_alpha[high_mask] = 255.0
+        mid_mask = (alpha >= 50.0) & (alpha < 210.0)
+        new_alpha[mid_mask] = (alpha[mid_mask] - 50.0) / (210.0 - 50.0) * 255.0
+        
+        try:
+            from scipy import ndimage
+            labeled, num_features = ndimage.label(new_alpha > 0)
+            if num_features > 1:
+                sizes = ndimage.sum(new_alpha > 0, labeled, range(num_features + 1))
+                small_comps = np.where(sizes < 80)[0]
+                for c_id in small_comps:
+                    new_alpha[labeled == c_id] = 0.0
+        except Exception:
+            pass
+            
+        arr[:, :, 3] = np.clip(new_alpha, 0, 255).astype(np.uint8)
+        arr[arr[:, :, 3] == 0] = [0, 0, 0, 0]
+        
+        clean_img = Image.fromarray(arr)
+        clean_img.save(save_path, "PNG")
+        processed = True
+    except Exception as e:
+        print(f"rembg error: {e}", file=sys.stderr)
+        
+    if not processed:
+        try:
+            img = Image.open(img_path).convert("RGBA")
+            datas = img.getdata()
+            new_data = []
+            for item in datas:
+                if item[0] > 240 and item[1] > 240 and item[2] > 240:
+                    new_data.append((255, 255, 255, 0))
+                else:
+                    new_data.append(item)
+            img.putdata(new_data)
+            img.save(save_path, "PNG")
+            processed = True
+        except Exception as e:
+            print(json.dumps({"success": False, "error": str(e)}, ensure_ascii=False))
+            sys.exit(1)
+            
+    report_progress(prog_file, "done", 100, "✅ 透明去背处理完成！")
+    print(json.dumps({"success": True, "saved_path": save_path, "transparent": True}, ensure_ascii=False))
+
 def main():
     parser = argparse.ArgumentParser(description="AVG Studio AI Bridge")
     subparsers = parser.add_subparsers(dest="command")
@@ -964,6 +1328,12 @@ def main():
     p_voice.add_argument("--volume", default="+0%")
     p_voice.add_argument("--progress_file", "--progress-file", default="")
 
+    # remove_background
+    p_rembg = subparsers.add_parser("remove_background")
+    p_rembg.add_argument("--image", required=True)
+    p_rembg.add_argument("--save", default="")
+    p_rembg.add_argument("--progress_file", "--progress-file", default="")
+
     args = parser.parse_args()
     if args.command == "check_comfy":
         cmd_check_comfy(args)
@@ -971,6 +1341,8 @@ def main():
         cmd_generate_image(args)
     elif args.command == "generate_voice":
         cmd_generate_voice(args)
+    elif args.command == "remove_background":
+        cmd_remove_background(args)
     else:
         parser.print_help()
 
